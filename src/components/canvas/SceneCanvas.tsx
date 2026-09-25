@@ -2,20 +2,27 @@
 
 import { Canvas } from "@react-three/fiber";
 import { GPGPUParticles } from "@/components/particles/GPGPUParticles";
+import { OrbitalRings } from "@/components/canvas/OrbitalRings";
 
-export function SceneCanvas() {
+interface SceneCanvasProps {
+  text?: string;
+  size?: number;
+}
+
+export function SceneCanvas({ text = "fahreza", size = 128 }: SceneCanvasProps) {
   return (
-    <div className="absolute inset-0 w-full h-full bg-[#060608]">
+    <div className="absolute inset-0 w-full h-full bg-[#050507]">
       <Canvas
-        camera={{ position: [0, 0, 4.2], fov: 55, near: 0.1, far: 100 }}
+        camera={{ position: [0, 0, 4.2], fov: 50, near: 0.1, far: 100 }}
         dpr={[1, 2]}
         gl={{
-          antialias: false,
+          antialias: true,
           alpha: true,
           powerPreference: "high-performance",
         }}
       >
-        <GPGPUParticles size={512} particleScale={1.0} />
+        <OrbitalRings />
+        <GPGPUParticles size={size} text={text} particleScale={1.15} />
       </Canvas>
     </div>
   );

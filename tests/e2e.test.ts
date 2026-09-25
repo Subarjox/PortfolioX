@@ -1,19 +1,19 @@
 import { describe, it, expect } from "vitest";
-import { generateInitialParticleData, generateParticleUVs } from "../src/utils/particleData";
+import { generateInitialParticleData, generateTextParticleData, generateParticleUVs } from "../src/utils/particleData";
 import { CURL_NOISE_GLSL } from "../src/shaders/gpgpu/curlNoise.glsl";
 import { SIMULATION_FRAGMENT_SHADER } from "../src/shaders/gpgpu/simulation.frag";
 import { PARTICLE_VERTEX_SHADER } from "../src/shaders/render/particles.vert";
 import { PARTICLE_FRAGMENT_SHADER } from "../src/shaders/render/particles.frag";
 
 describe("E2E Architecture Alignment", () => {
-  it("verifies full pipeline constants and data alignment", () => {
-    const size = 512;
+  it("verifies pipeline constants, text data, and particle alignment", () => {
+    const size = 128; // Reduced particle count for clean word formation
     const count = size * size;
-    const positions = generateInitialParticleData(size);
+    const positions = generateTextParticleData("fahreza", size);
     const uvs = generateParticleUVs(size);
 
-    // Verify 512x512 = 262,144 particles
-    expect(count).toBe(262144);
+    // Verify 128x128 = 16,384 particles
+    expect(count).toBe(16384);
     expect(positions.length).toBe(count * 4);
     expect(uvs.length).toBe(count * 2);
 
@@ -22,6 +22,7 @@ describe("E2E Architecture Alignment", () => {
     expect(SIMULATION_FRAGMENT_SHADER).toContain("curlNoise");
     expect(SIMULATION_FRAGMENT_SHADER).toContain("u_positions");
     expect(SIMULATION_FRAGMENT_SHADER).toContain("u_origin");
+    expect(SIMULATION_FRAGMENT_SHADER).toContain("toOrigin");
 
     // Verify render shader bindings
     expect(PARTICLE_VERTEX_SHADER).toContain("u_positions");

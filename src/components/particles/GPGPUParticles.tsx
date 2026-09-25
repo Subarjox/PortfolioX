@@ -9,12 +9,17 @@ import { PARTICLE_VERTEX_SHADER } from "@/shaders/render/particles.vert";
 import { PARTICLE_FRAGMENT_SHADER } from "@/shaders/render/particles.frag";
 
 interface GPGPUParticlesProps {
-  size?: number; // 512 gives 512*512 = 262,144 particles
+  size?: number; // 128 gives 128*128 = 16,384 particles
+  text?: string;
   particleScale?: number;
 }
 
-export function GPGPUParticles({ size = 512, particleScale = 1.0 }: GPGPUParticlesProps) {
-  const { stepSimulation, getCurrentTexture } = useGPGPUSimulation({ size });
+export function GPGPUParticles({
+  size = 128,
+  text = "fahreza",
+  particleScale = 1.15,
+}: GPGPUParticlesProps) {
+  const { stepSimulation, getCurrentTexture } = useGPGPUSimulation({ size, text });
 
   const pointsRef = useRef<THREE.Points>(null);
   const mousePlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), []);

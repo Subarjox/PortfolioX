@@ -7,22 +7,24 @@ import { SIMULATION_FRAGMENT_SHADER } from "@/shaders/gpgpu/simulation.frag";
 import { createPositionDataTexture } from "@/utils/particleData";
 
 interface UseGPGPUSimulationOptions {
-  size?: number; // e.g. 512 for 262,144 particles
+  size?: number; // e.g. 128 for 16,384 particles
+  text?: string;
   repulsionDist?: number;
   repulsionStrength?: number;
 }
 
 export function useGPGPUSimulation({
-  size = 512,
-  repulsionDist = 1.2,
-  repulsionStrength = 0.08,
+  size = 128,
+  text = "fahreza",
+  repulsionDist = 1.0,
+  repulsionStrength = 0.09,
 }: UseGPGPUSimulationOptions = {}) {
   const { gl } = useThree();
 
-  // Create initial data texture
+  // Create initial data texture sampled from text
   const { originTexture } = useMemo(() => {
-    return { originTexture: createPositionDataTexture(size) };
-  }, [size]);
+    return { originTexture: createPositionDataTexture(size, text) };
+  }, [size, text]);
 
   // Set up double render targets (Ping-Pong)
   const [fboA, fboB] = useMemo(() => {
