@@ -1,6 +1,6 @@
 /**
  * Math utilities for 3D curved cylinder meshes, responsive layouts,
- * and magnetic snapping behavior.
+ * dynamic focus scaling, and magnetic snapping behavior.
  */
 
 export const DESKTOP_CARD_SPACING = 5.2;
@@ -22,10 +22,13 @@ export interface CardLayoutResult {
   z: number;
   rotationY: number;
   rotationZ: number;
+  scale: number;
 }
 
 /**
- * Calculates 3D position and orientation for each project card.
+ * Calculates 3D position, orientation, and focus scale for each project card.
+ * - Focused project (currently highlighted): scaled larger (1.05x).
+ * - Other projects: scaled down to 70% (0.70x).
  * - Desktop: Horizontal curved cylinder track with widened spacing.
  * - Mobile: Diagonal staggered 3D cascade with comfortable depth offsets.
  */
@@ -37,6 +40,12 @@ export function calculateCardLayout(
 ): CardLayoutResult {
   const activeFloat = progress * (totalCards - 1);
   const diff = index - activeFloat;
+  const absDiff = Math.abs(diff);
+
+  // Smoothstep transition: focused card is 1.05x (larger), others smoothly settle at 0.70x (70%)
+  const proximity = Math.max(0, 1 - absDiff);
+  const smoothProximity = proximity * proximity * (3 - 2 * proximity);
+  const scale = 0.70 + 0.35 * smoothProximity;
 
   if (isMobile) {
     // Staggered cascade matching phoneprojeclist.png
@@ -47,7 +56,7 @@ export function calculateCardLayout(
     const z = -Math.abs(diff) * 1.3;
     const rotationY = -0.15;
     const rotationZ = -0.06;
-    return { x, y, z, rotationY, rotationZ };
+    return { x, y, z, rotationY, rotationZ, scale };
   } else {
     // Horizontal curved ribbon matching Project List.png with widened breathing room
     const x = diff * DESKTOP_CARD_SPACING;
@@ -55,7 +64,7 @@ export function calculateCardLayout(
     const z = -Math.pow(x * 0.15, 2);
     const rotationY = -x * 0.035;
     const rotationZ = -0.02;
-    return { x, y, z, rotationY, rotationZ };
+    return { x, y, z, rotationY, rotationZ, scale };
   }
 }
 

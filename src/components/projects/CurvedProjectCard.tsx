@@ -160,6 +160,25 @@ export function CurvedProjectCard({
       lambda,
       delta
     );
+
+    meshRef.current.scale.x = THREE.MathUtils.damp(
+      meshRef.current.scale.x,
+      target.scale,
+      lambda,
+      delta
+    );
+    meshRef.current.scale.y = THREE.MathUtils.damp(
+      meshRef.current.scale.y,
+      target.scale,
+      lambda,
+      delta
+    );
+    meshRef.current.scale.z = THREE.MathUtils.damp(
+      meshRef.current.scale.z,
+      target.scale,
+      lambda,
+      delta
+    );
   });
 
   return (

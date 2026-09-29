@@ -45,4 +45,15 @@ describe("Curved Mesh Math & Project Data", () => {
     expect(card1.y).toBeGreaterThan(card0.y); // upper right
     expect(card1.z).toBeLessThan(card0.z); // deeper in Z
   });
+
+  it("should scale focused card to larger size and inactive cards to 70% scale", () => {
+    // When progress = 0.0, card 0 is focused, card 1 & 2 are inactive
+    const card0 = calculateCardLayout(0, 0.0, 6, false);
+    const card1 = calculateCardLayout(1, 0.0, 6, false);
+    const card2 = calculateCardLayout(2, 0.0, 6, false);
+
+    expect(card0.scale).toBeGreaterThanOrEqual(1.0);
+    expect(card1.scale).toBeCloseTo(0.70, 2);
+    expect(card2.scale).toBeCloseTo(0.70, 2);
+  });
 });
