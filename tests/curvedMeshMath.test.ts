@@ -16,11 +16,26 @@ describe("Curved Mesh Math & Project Data", () => {
     expect(edgeZ).toBeLessThan(0); // concave bend
   });
 
-  it("should layout desktop cards horizontally along X axis", () => {
+  it("should layout desktop cards with widened spacing (at least 4.5 units)", () => {
     const card0 = calculateCardLayout(0, 0.0, 6, false);
     const card1 = calculateCardLayout(1, 0.0, 6, false);
-    expect(card1.x).toBeGreaterThan(card0.x);
+    const spacing = card1.x - card0.x;
+    expect(spacing).toBeGreaterThanOrEqual(4.5);
     expect(card0.y).toBeCloseTo(0, 1);
+  });
+
+  it("should apply magnetic snap effect so projects lock cleanly without drifting", async () => {
+    const { applyMagneticSnap } = await import("../src/utils/curvedMeshMath");
+    // Center of project 01 (index 0)
+    expect(applyMagneticSnap(0.0, 6)).toBe(0.0);
+    // Center of project 02 (index 1 -> progress = 1/5 = 0.2)
+    expect(applyMagneticSnap(0.2, 6)).toBe(0.2);
+    // Center of project 06 (index 5 -> progress = 1.0)
+    expect(applyMagneticSnap(1.0, 6)).toBe(1.0);
+
+    // Near project 02 (progress 0.22): magnetic pull brings it closer to 0.2 than 0.22
+    const near02 = applyMagneticSnap(0.22, 6);
+    expect(Math.abs(near02 - 0.2)).toBeLessThan(0.02);
   });
 
   it("should layout mobile cards in staggered diagonal cascade", () => {

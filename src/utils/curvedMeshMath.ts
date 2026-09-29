@@ -1,6 +1,10 @@
 /**
- * Math utilities for 3D curved cylinder meshes and responsive card layouts.
+ * Math utilities for 3D curved cylinder meshes, responsive layouts,
+ * and magnetic snapping behavior.
  */
+
+export const DESKTOP_CARD_SPACING = 5.2;
+export const MOBILE_CARD_SPACING = 2.2;
 
 /**
  * Calculates concave parabolic curvature along X axis.
@@ -22,8 +26,8 @@ export interface CardLayoutResult {
 
 /**
  * Calculates 3D position and orientation for each project card.
- * - Desktop: Horizontal curved cylinder track matching Project List.png.
- * - Mobile: Diagonal staggered 3D cascade matching phoneprojeclist.png.
+ * - Desktop: Horizontal curved cylinder track with widened spacing.
+ * - Mobile: Diagonal staggered 3D cascade with comfortable depth offsets.
  */
 export function calculateCardLayout(
   index: number,
@@ -37,21 +41,45 @@ export function calculateCardLayout(
   if (isMobile) {
     // Staggered cascade matching phoneprojeclist.png
     // Active card (diff = 0) is foreground left-center
-    // Next cards (diff > 0) are higher (Y positive), shifted right (X positive), and deeper in Z
-    const x = diff * 1.5 - 0.2;
-    const y = diff * 1.1 + 0.1;
-    const z = -Math.abs(diff) * 1.2;
+    // Next cards (diff > 0) are higher, shifted right, and deeper in Z
+    const x = diff * MOBILE_CARD_SPACING - 0.25;
+    const y = diff * 1.35 + 0.1;
+    const z = -Math.abs(diff) * 1.3;
     const rotationY = -0.15;
     const rotationZ = -0.06;
     return { x, y, z, rotationY, rotationZ };
   } else {
-    // Horizontal curved ribbon matching Project List.png
-    const spacing = 3.6;
-    const x = diff * spacing;
+    // Horizontal curved ribbon matching Project List.png with widened breathing room
+    const x = diff * DESKTOP_CARD_SPACING;
     const y = 0;
-    const z = -Math.pow(x * 0.2, 2);
-    const rotationY = -x * 0.04;
+    const z = -Math.pow(x * 0.15, 2);
+    const rotationY = -x * 0.035;
     const rotationZ = -0.02;
     return { x, y, z, rotationY, rotationZ };
   }
+}
+
+/**
+ * Applies a smooth magnetic attraction towards integer project indices
+ * so that when the user scrolls near a card, it locks cleanly in view
+ * without drifting or overshooting ("tidak nyasar").
+ */
+export function applyMagneticSnap(
+  progress: number,
+  totalCards: number = 6,
+  strength: number = 1.35
+): number {
+  if (totalCards <= 1) return progress;
+  const maxIdx = totalCards - 1;
+  const activeFloat = Math.max(0, Math.min(maxIdx, progress * maxIdx));
+  const nearest = Math.round(activeFloat);
+  const delta = activeFloat - nearest; // [-0.5, 0.5]
+
+  // S-curve magnetic compression towards integer detents
+  const absDelta = Math.abs(delta);
+  const factor = Math.pow(absDelta * 2, strength) / 2;
+  const snappedDelta = Math.sign(delta) * factor;
+
+  const snappedFloat = Math.max(0, Math.min(maxIdx, nearest + snappedDelta));
+  return snappedFloat / maxIdx;
 }

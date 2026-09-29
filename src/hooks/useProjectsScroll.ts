@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { applyMagneticSnap } from "@/utils/curvedMeshMath";
 
 export interface ScrollProgressState {
   targetProgress: number;
@@ -11,18 +12,20 @@ export interface ScrollProgressState {
 
 /**
  * Calculates normalized pinned scroll progress (0.0 to 1.0)
- * based on section bounding client rect top, total height, and viewport height.
+ * with magnetic lock snap so project cards settle centered without drifting.
  */
 export function calculateScrollProgress(
   sectionTop: number,
   sectionHeight: number,
-  viewportHeight: number
+  viewportHeight: number,
+  totalCards: number = 6
 ): number {
   if (sectionTop > 0) return 0;
   const maxScroll = Math.max(sectionHeight - viewportHeight, 1);
   const scrolled = -sectionTop;
   const rawProgress = scrolled / maxScroll;
-  return Math.max(0, Math.min(1, rawProgress));
+  const clampedProgress = Math.max(0, Math.min(1, rawProgress));
+  return applyMagneticSnap(clampedProgress, totalCards);
 }
 
 /**
@@ -45,9 +48,17 @@ export function useProjectsScroll(
     const handleScroll = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const target = calculateScrollProgress(rect.top, rect.height, window.innerHeight);
+      const target = calculateScrollProgress(
+        rect.top,
+        rect.height,
+        window.innerHeight,
+        totalCards
+      );
 
-      const activeIdx = Math.max(0, Math.min(totalCards - 1, Math.round(target * (totalCards - 1))));
+      const activeIdx = Math.max(
+        0,
+        Math.min(totalCards - 1, Math.round(target * (totalCards - 1)))
+      );
       const numStr = String(activeIdx + 1).padStart(2, "0");
 
       setProgressState((prev) => {

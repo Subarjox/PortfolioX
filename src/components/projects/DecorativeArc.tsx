@@ -3,6 +3,7 @@
 import React, { useMemo, useRef, useEffect } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
+import { DESKTOP_CARD_SPACING } from "@/utils/curvedMeshMath";
 
 interface DecorativeArcProps {
   progress: number;
@@ -45,7 +46,7 @@ export function DecorativeArc({ progress, isMobile }: DecorativeArcProps) {
     }
     meshRef.current.visible = true;
 
-    const midpointX = (0.5 - progress * 5) * 3.6;
+    const midpointX = (0.5 - progress * 5) * DESKTOP_CARD_SPACING;
     const lambda = 8.5;
 
     meshRef.current.position.x = THREE.MathUtils.damp(
