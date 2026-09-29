@@ -76,27 +76,31 @@ export function CurvedProjectCard({
     tex.minFilter = THREE.LinearFilter;
     tex.generateMipmaps = true;
 
-    // Attempt to load external image texture asynchronously
+    return tex;
+  }, [project.accentColor, project.id, project.title]);
+
+  const [imageTexture, setImageTexture] = React.useState<THREE.Texture | null>(null);
+
+  React.useEffect(() => {
+    let active = true;
     const loader = new THREE.TextureLoader();
     loader.load(
       project.image,
       (loadedTex) => {
+        if (!active) return;
         loadedTex.colorSpace = THREE.SRGBColorSpace;
         loadedTex.minFilter = THREE.LinearMipmapLinearFilter;
-        if (meshRef.current) {
-          const mat = meshRef.current.material as THREE.MeshBasicMaterial;
-          mat.map = loadedTex;
-          mat.needsUpdate = true;
-        }
+        setImageTexture(loadedTex);
       },
       undefined,
       () => {
         // Fallback texture remains active if file not found
       }
     );
-
-    return tex;
-  }, [project.accentColor, project.id, project.image, project.title]);
+    return () => {
+      active = false;
+    };
+  }, [project.image]);
 
   // Dynamic position and smooth spring interpolation
   useFrame(() => {
@@ -114,7 +118,7 @@ export function CurvedProjectCard({
   return (
     <mesh ref={meshRef} geometry={geometry}>
       <meshBasicMaterial
-        map={texture || undefined}
+        map={imageTexture || texture || undefined}
         color="#ffffff"
         side={THREE.DoubleSide}
         toneMapped={false}
