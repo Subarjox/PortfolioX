@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { ProjectItem } from "@/data/projectsData";
@@ -42,24 +42,28 @@ export function CurvedProjectCard({
     return geo;
   }, [isMobile]);
 
+  // Clean up WebGL geometry on unmount or breakpoint change to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      geometry.dispose();
+    };
+  }, [geometry]);
+
   // Texture loading with high quality fallback canvas texture
   const texture = useMemo(() => {
     if (typeof document === "undefined") return null;
 
-    // First create a clean placeholder canvas texture with accent color & subtle editorial styling
     const canvas = document.createElement("canvas");
     canvas.width = 1024;
     canvas.height = 680;
     const ctx = canvas.getContext("2d");
     if (ctx) {
-      // Background gradient matching project accent
       const grad = ctx.createLinearGradient(0, 0, 1024, 680);
       grad.addColorStop(0, project.accentColor);
       grad.addColorStop(1, "#111115");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 1024, 680);
 
-      // Subtle editorial watermark
       ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
       ctx.font = '700 80px "Inter", sans-serif';
       ctx.textAlign = "center";
@@ -79,15 +83,25 @@ export function CurvedProjectCard({
     return tex;
   }, [project.accentColor, project.id, project.title]);
 
-  const [imageTexture, setImageTexture] = React.useState<THREE.Texture | null>(null);
+  // Clean up canvas fallback texture on unmount
+  useEffect(() => {
+    return () => {
+      if (texture) texture.dispose();
+    };
+  }, [texture]);
 
-  React.useEffect(() => {
+  const [imageTexture, setImageTexture] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
     let active = true;
     const loader = new THREE.TextureLoader();
     loader.load(
       project.image,
       (loadedTex) => {
-        if (!active) return;
+        if (!active) {
+          loadedTex.dispose();
+          return;
+        }
         loadedTex.colorSpace = THREE.SRGBColorSpace;
         loadedTex.minFilter = THREE.LinearMipmapLinearFilter;
         setImageTexture(loadedTex);
@@ -102,17 +116,50 @@ export function CurvedProjectCard({
     };
   }, [project.image]);
 
-  // Dynamic position and smooth spring interpolation
-  useFrame(() => {
+  // Clean up loaded image texture on unmount or URL change
+  useEffect(() => {
+    return () => {
+      if (imageTexture) imageTexture.dispose();
+    };
+  }, [imageTexture]);
+
+  // Dynamic position with frame-rate independent exponential decay damping
+  useFrame((_, delta) => {
     if (!meshRef.current) return;
     const target = calculateCardLayout(index, progress, totalCards, isMobile);
 
-    meshRef.current.position.x += (target.x - meshRef.current.position.x) * 0.1;
-    meshRef.current.position.y += (target.y - meshRef.current.position.y) * 0.1;
-    meshRef.current.position.z += (target.z - meshRef.current.position.z) * 0.1;
+    const lambda = 8.5; // Damping responsiveness factor
+    meshRef.current.position.x = THREE.MathUtils.damp(
+      meshRef.current.position.x,
+      target.x,
+      lambda,
+      delta
+    );
+    meshRef.current.position.y = THREE.MathUtils.damp(
+      meshRef.current.position.y,
+      target.y,
+      lambda,
+      delta
+    );
+    meshRef.current.position.z = THREE.MathUtils.damp(
+      meshRef.current.position.z,
+      target.z,
+      lambda,
+      delta
+    );
 
-    meshRef.current.rotation.y += (target.rotationY - meshRef.current.rotation.y) * 0.1;
-    meshRef.current.rotation.z += (target.rotationZ - meshRef.current.rotation.z) * 0.1;
+    meshRef.current.rotation.y = THREE.MathUtils.damp(
+      meshRef.current.rotation.y,
+      target.rotationY,
+      lambda,
+      delta
+    );
+    meshRef.current.rotation.z = THREE.MathUtils.damp(
+      meshRef.current.rotation.z,
+      target.rotationZ,
+      lambda,
+      delta
+    );
   });
 
   return (

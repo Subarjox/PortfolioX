@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 export interface ScrollProgressState {
   targetProgress: number;
@@ -26,8 +26,9 @@ export function calculateScrollProgress(
 }
 
 /**
- * Hook to monitor scroll progress through the featured projects sticky container
- * with smooth lerp physics and active slide index tracking.
+ * Hook to monitor scroll progress through the featured projects sticky container.
+ * Updates React state ONLY upon scroll/resize events, eliminating React render-cycle thrashing.
+ * Smooth frame-rate independent interpolation is handled purely inside Three.js useFrame.
  */
 export function useProjectsScroll(
   containerRef: React.RefObject<HTMLElement | null>,
@@ -40,12 +41,7 @@ export function useProjectsScroll(
     activeProjectNumber: "01",
   });
 
-  const stateRef = useRef(progressState);
-  stateRef.current = progressState;
-
   useEffect(() => {
-    let animId: number;
-
     const handleScroll = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
@@ -54,37 +50,29 @@ export function useProjectsScroll(
       const activeIdx = Math.max(0, Math.min(totalCards - 1, Math.round(target * (totalCards - 1))));
       const numStr = String(activeIdx + 1).padStart(2, "0");
 
-      setProgressState((prev) => ({
-        ...prev,
-        targetProgress: target,
-        activeIndex: activeIdx,
-        activeProjectNumber: numStr,
-      }));
-    };
-
-    const updateLerp = () => {
-      const prev = stateRef.current;
-      const diff = prev.targetProgress - prev.currentProgress;
-      const nextProgress = prev.currentProgress + diff * 0.08;
-
-      if (Math.abs(diff) > 0.0001) {
-        setProgressState((s) => ({
-          ...s,
-          currentProgress: nextProgress,
-        }));
-      }
-      animId = requestAnimationFrame(updateLerp);
+      setProgressState((prev) => {
+        if (
+          Math.abs(prev.targetProgress - target) < 0.0001 &&
+          prev.activeIndex === activeIdx
+        ) {
+          return prev;
+        }
+        return {
+          targetProgress: target,
+          currentProgress: target,
+          activeIndex: activeIdx,
+          activeProjectNumber: numStr,
+        };
+      });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleScroll, { passive: true });
     handleScroll();
-    animId = requestAnimationFrame(updateLerp);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
-      cancelAnimationFrame(animId);
     };
   }, [containerRef, totalCards]);
 
