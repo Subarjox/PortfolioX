@@ -8,7 +8,7 @@ interface OverlayUIProps {
 }
 
 export function OverlayUI({
-  currentText = "fahreza",
+  currentText = "code",
   onTextChange,
 }: OverlayUIProps) {
   return (
@@ -36,35 +36,48 @@ export function OverlayUI({
               value={currentText}
               onChange={(e) => onTextChange?.(e.target.value.toLowerCase())}
               className="bg-transparent text-xs font-mono tracking-wider text-[#e6c875] outline-none w-20 uppercase font-bold"
-              placeholder="fahreza"
+              placeholder="code"
             />
           </div>
         </div>
       </header>
 
-      {/* Bottom Bar: Matching partikle.png exactly */}
-      <footer className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
-        {/* Bottom Left Paragraph and Tags */}
-        <div className="space-y-4 max-w-lg">
-          <p className="text-xs md:text-sm font-normal tracking-[0.04em] text-zinc-300 leading-relaxed lowercase">
-            digital experiences: premium websites, immersive WebGL, and<br className="hidden sm:inline" /> management tools.
-          </p>
-          <div className="pt-2 flex items-center gap-3 text-[10px] md:text-[11px] font-mono tracking-[0.22em] text-[#8e8e93] uppercase">
-            <span>WEBGL</span>
-            <span>/</span>
-            <span>3D</span>
-            <span className="px-2">/</span>
-            <span>MANAGEMENT TOOLS</span>
-          </div>
-        </div>
+      {/* Subtle Horizontal Tech Separator Line matching partikle.png */}
+      <div className="w-full flex flex-col gap-6">
+        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent border-t border-dashed border-white/20" />
 
-        {/* Bottom Right: SCROLL */}
-        <div className="self-end md:self-auto">
-          <span className="text-[11px] md:text-xs font-mono tracking-[0.28em] text-[#9a9a9e] uppercase cursor-pointer hover:text-white transition-colors">
-            SCROLL
-          </span>
-        </div>
-      </footer>
+        {/* Bottom Bar: Matching partikle.png exactly */}
+        <footer className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+          {/* Bottom Left Paragraph and Tags */}
+          <div className="space-y-4 max-w-lg">
+            <p className="text-xs md:text-sm font-normal tracking-[0.04em] text-zinc-300 leading-relaxed lowercase">
+              digital experiences: premium websites, immersive WebGL, and<br className="hidden sm:inline" /> management tools.
+            </p>
+            <div className="pt-2 flex items-center gap-3 text-[10px] md:text-[11px] font-mono tracking-[0.22em] text-[#8e8e93] uppercase">
+              <span>WEBGL</span>
+              <span>/</span>
+              <span>3D</span>
+              <span className="px-2">/</span>
+              <span>MANAGEMENT TOOLS</span>
+            </div>
+          </div>
+
+          {/* Bottom Right: SCROLL */}
+          <div className="self-end md:self-auto pointer-events-auto">
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
+                }
+              }}
+              className="text-[11px] md:text-xs font-mono tracking-[0.28em] text-[#9a9a9e] uppercase cursor-pointer hover:text-white transition-colors"
+            >
+              SCROLL
+            </button>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }

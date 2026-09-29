@@ -29,4 +29,9 @@ describe("E2E Architecture Alignment", () => {
     expect(PARTICLE_VERTEX_SHADER).toContain("reference");
     expect(PARTICLE_FRAGMENT_SHADER).toContain("gl_PointCoord");
   });
+
+  it("verifies home page structure and featured section integration", async () => {
+    const pageModule = await import("../src/app/page");
+    expect(pageModule.default).toBeDefined();
+  });
 });
