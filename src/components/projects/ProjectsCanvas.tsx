@@ -18,6 +18,7 @@ export function ProjectsCanvas({
   return (
     <div className="absolute inset-0 pointer-events-auto">
       <Canvas
+        style={{ touchAction: "pan-y" }}
         camera={{
           position: [0, 0, isMobile ? 5.2 : 4.4],
           fov: isMobile ? 50 : 42,

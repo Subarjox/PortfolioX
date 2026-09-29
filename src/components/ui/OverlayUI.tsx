@@ -12,7 +12,7 @@ export function OverlayUI({
   onTextChange,
 }: OverlayUIProps) {
   return (
-    <div className="pointer-events-none fixed inset-0 z-10 flex flex-col justify-between p-8 md:p-14 text-[#dedede] select-none">
+    <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-8 md:p-14 text-[#dedede] select-none">
       {/* Background Decorative Crosshairs matching partikle.png */}
       <div className="absolute top-1/4 left-1/5 text-white/20 text-xs font-mono select-none">+</div>
       <div className="absolute top-1/3 right-1/4 text-white/15 text-xs font-mono select-none">+</div>

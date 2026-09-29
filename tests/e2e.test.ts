@@ -34,4 +34,19 @@ describe("E2E Architecture Alignment", () => {
     const pageModule = await import("../src/app/page");
     expect(pageModule.default).toBeDefined();
   });
+
+  it("verifies scrollable body and non-fixed hero overlay to prevent collision", async () => {
+    const fs = await import("fs");
+    const layoutContent = fs.readFileSync("src/app/layout.tsx", "utf-8");
+    const globalsContent = fs.readFileSync("src/app/globals.css", "utf-8");
+    const overlayContent = fs.readFileSync("src/components/ui/OverlayUI.tsx", "utf-8");
+
+    // Body in layout must not lock overflow-hidden or h-screen
+    expect(layoutContent).not.toContain("overflow-hidden");
+    // globals.css must not have overflow: hidden on body
+    expect(globalsContent).not.toMatch(/body\s*\{[^}]*overflow:\s*hidden/);
+    // OverlayUI must use absolute so it stays in Hero and doesn't collide with projects
+    expect(overlayContent).not.toContain("fixed inset-0");
+    expect(overlayContent).toContain("absolute inset-0");
+  });
 });

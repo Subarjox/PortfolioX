@@ -9,10 +9,11 @@ interface SceneCanvasProps {
   size?: number;
 }
 
-export function SceneCanvas({ text = "fahreza", size = 128 }: SceneCanvasProps) {
+export function SceneCanvas({ text = "code", size = 48 }: SceneCanvasProps) {
   return (
-    <div className="absolute inset-0 w-full h-full bg-[#050507]">
+    <div className="absolute inset-0 w-full h-full bg-[#090909]">
       <Canvas
+        style={{ touchAction: "pan-y" }}
         camera={{ position: [0, 0, 4.2], fov: 50, near: 0.1, far: 100 }}
         dpr={[1, 2]}
         gl={{
@@ -22,7 +23,7 @@ export function SceneCanvas({ text = "fahreza", size = 128 }: SceneCanvasProps) 
         }}
       >
         <OrbitalRings />
-        <GPGPUParticles size={size} text={text} particleScale={1.15} />
+        <GPGPUParticles size={size} text={text} particleScale={1.0} />
       </Canvas>
     </div>
   );
