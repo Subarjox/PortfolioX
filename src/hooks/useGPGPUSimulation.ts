@@ -7,15 +7,15 @@ import { SIMULATION_FRAGMENT_SHADER } from "@/shaders/gpgpu/simulation.frag";
 import { createPositionDataTexture } from "@/utils/particleData";
 
 interface UseGPGPUSimulationOptions {
-  size?: number; // e.g. 128 for 16,384 particles
+  size?: number; // e.g. 48 for 2,304 particles
   text?: string;
   repulsionDist?: number;
   repulsionStrength?: number;
 }
 
 export function useGPGPUSimulation({
-  size = 128,
-  text = "fahreza",
+  size = 48,
+  text = "code",
   repulsionDist = 1.0,
   repulsionStrength = 0.09,
 }: UseGPGPUSimulationOptions = {}) {

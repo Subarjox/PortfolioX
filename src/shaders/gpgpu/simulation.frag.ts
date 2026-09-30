@@ -30,7 +30,7 @@ void main() {
 
   // 2. Subtle living fluid curl noise breathing around the letters
   vec3 curl = curlNoise(p * u_curl_freq + vec3(0.0, 0.0, u_time * u_curl_speed));
-  p += curl * u_delta * 0.05;
+  p += curl * u_delta * 0.02;
 
   // 3. Mouse Repulsion Area: if (length(p - u_mouse) < dist) { ... }
   vec3 diff = p - u_mouse;

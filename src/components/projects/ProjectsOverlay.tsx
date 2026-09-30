@@ -31,7 +31,7 @@ export function ProjectsOverlay({
           href="#projects"
           className="pointer-events-auto flex items-center gap-1.5 font-mono text-xs md:text-sm tracking-wider text-neutral-600 hover:text-neutral-950 transition-colors"
         >
-          <span>Beyond the projects</span>
+          <span>Beyond The Projects</span>
           <span className="text-sm font-sans">↘</span>
         </a>
       </header>

@@ -7,6 +7,7 @@ attribute vec2 reference;
 
 varying vec3 vPosition;
 varying float vDistanceToCamera;
+varying float vAlpha;
 
 void main() {
   // Sample position computed in GPGPU FBO pass
@@ -14,6 +15,7 @@ void main() {
   vec3 pos = posData.xyz;
 
   vPosition = pos;
+  vAlpha = 0.5 + 0.5 * posData.w;
 
   vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
   gl_Position = projectionMatrix * mvPosition;
@@ -21,7 +23,7 @@ void main() {
   vDistanceToCamera = -mvPosition.z;
 
   // Size attenuation: discrete points shrink proportionally with camera distance
-  gl_PointSize = 2.0 * u_size * u_pixelRatio * (300.0 / -mvPosition.z);
-  gl_PointSize = clamp(gl_PointSize, 1.0, 18.0);
+  gl_PointSize = 2.0 * u_size * u_pixelRatio * (5.5 / -mvPosition.z);
+  gl_PointSize = clamp(gl_PointSize, 1.2, 3.2 * u_pixelRatio);
 }
 `;

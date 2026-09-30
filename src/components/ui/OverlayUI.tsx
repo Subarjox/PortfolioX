@@ -23,21 +23,21 @@ export function OverlayUI({
       <header className="flex items-start justify-between">
         <div>
           <span className="text-[11px] md:text-xs font-mono tracking-[0.25em] text-[#a6a6aa] uppercase">
-            DIGITAL EXPERIENCES / ENGINEERING
+            AI Engineer / Software Engineer
           </span>
         </div>
 
         {/* Minimal Interactive Text Modifier */}
         <div className="pointer-events-auto flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-black/40 backdrop-blur-md">
-            <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">WORD:</span>
-            <input
+            <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">PORTFOLIO</span>
+            {/* <input
               type="text"
               value={currentText}
               onChange={(e) => onTextChange?.(e.target.value.toLowerCase())}
               className="bg-transparent text-xs font-mono tracking-wider text-[#e6c875] outline-none w-20 uppercase font-bold"
               placeholder="code"
-            />
+            /> */}
           </div>
         </div>
       </header>

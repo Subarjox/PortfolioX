@@ -9,15 +9,15 @@ import { PARTICLE_VERTEX_SHADER } from "@/shaders/render/particles.vert";
 import { PARTICLE_FRAGMENT_SHADER } from "@/shaders/render/particles.frag";
 
 interface GPGPUParticlesProps {
-  size?: number; // 128 gives 128*128 = 16,384 particles
+  size?: number; // 48 gives 48*48 = 2,304 discrete stippled particles matching partikle.png
   text?: string;
   particleScale?: number;
 }
 
 export function GPGPUParticles({
-  size = 128,
-  text = "fahreza",
-  particleScale = 1.15,
+  size = 48,
+  text = "code",
+  particleScale = 1.0,
 }: GPGPUParticlesProps) {
   const { stepSimulation, getCurrentTexture } = useGPGPUSimulation({ size, text });
 

@@ -11,7 +11,7 @@ const SceneCanvas = dynamic(
 );
 
 export default function Home() {
-  const [text, setText] = useState("AI ENGINEER");
+  const [text, setText] = useState("FAHREZA");
 
   return (
     <main className="relative min-h-screen w-full bg-[#090909] text-white selection:bg-neutral-800">
@@ -23,6 +23,7 @@ export default function Home() {
 
       {/* Featured Projects Section: Pinned 3D Curved Showcase */}
       <FeaturedProjectsSection />
+
     </main>
   );
 }

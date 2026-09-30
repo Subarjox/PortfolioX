@@ -3,6 +3,7 @@ precision highp float;
 
 varying vec3 vPosition;
 varying float vDistanceToCamera;
+varying float vAlpha;
 
 void main() {
   // Circular point coordinate check
@@ -12,8 +13,8 @@ void main() {
     discard;
   }
 
-  // Soft stippled point falloff
-  float alpha = smoothstep(0.5, 0.08, dist);
+  // Crisp stippled point with tight anti-aliased perimeter
+  float alpha = smoothstep(0.5, 0.32, dist);
 
   // Discrete crisp white with subtle warm silver/gold tint matching partikle.png
   vec3 gold = vec3(0.94, 0.88, 0.76); // Subtle warm gold
@@ -22,6 +23,6 @@ void main() {
   float t = clamp((vPosition.z + 0.08) / 0.16, 0.0, 1.0);
   vec3 color = mix(gold, white, t);
 
-  gl_FragColor = vec4(color, alpha * 0.92);
+  gl_FragColor = vec4(color, alpha * vAlpha);
 }
 `;
