@@ -16,7 +16,7 @@ interface GPGPUParticlesProps {
 
 export function GPGPUParticles({
   size = 48,
-  text = "code",
+  text = "fahreza",
   particleScale = 1.0,
 }: GPGPUParticlesProps) {
   const { stepSimulation, getCurrentTexture } = useGPGPUSimulation({ size, text });

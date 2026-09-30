@@ -30,16 +30,33 @@ export function generateTextParticleData(
       ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, width, height);
 
-      // Render modern geometric bold text matching partikle.png
+      // Render modern geometric bold text matching partikle.png with dynamic font scaling
       ctx.fillStyle = "#ffffff";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = '700 290px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+
+      let fontSize = 270;
+      if (text.length > 14) {
+        fontSize = 175;
+      } else if (text.length > 8) {
+        fontSize = 215;
+      }
+
+      ctx.font = `700 ${fontSize}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
       try {
-        (ctx as unknown as { letterSpacing?: string }).letterSpacing = "24px";
+        (ctx as unknown as { letterSpacing?: string }).letterSpacing = text.length > 12 ? "10px" : "20px";
       } catch {
         // letterSpacing fallback
       }
+
+      // Ensure text width stays within canvas margins
+      let metrics = ctx.measureText(text);
+      const maxAllowedWidth = width * 0.88;
+      if (metrics.width > maxAllowedWidth) {
+        fontSize = Math.floor(fontSize * (maxAllowedWidth / metrics.width));
+        ctx.font = `700 ${fontSize}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
+      }
+
       ctx.fillText(text, width / 2, height / 2);
 
       const imgData = ctx.getImageData(0, 0, width, height);
@@ -84,7 +101,8 @@ export function generateTextParticleData(
 
       const textWidth = Math.max(maxX - minX, 1);
       const textHeight = Math.max(maxY - minY, 1);
-      const targetWidth = 4.8; // 3D world width matching partikle.png proportion
+      // Scale target width adaptively so longer phrases have comfortable horizontal span
+      const targetWidth = Math.min(5.4, Math.max(4.2, (textWidth / 1300) * 4.6));
       const targetHeight = (targetWidth / textWidth) * textHeight;
 
       if (textPoints.length > 0) {

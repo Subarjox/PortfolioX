@@ -14,6 +14,10 @@ describe("GPGPU Shaders", () => {
     expect(SIMULATION_FRAGMENT_SHADER).toContain("uniform sampler2D u_origin;");
     expect(SIMULATION_FRAGMENT_SHADER).toContain("uniform vec3 u_mouse;");
     expect(SIMULATION_FRAGMENT_SHADER).toContain("if (d < u_dist");
-    expect(SIMULATION_FRAGMENT_SHADER).toContain("u_repulsion_strength");
+    expect(SIMULATION_FRAGMENT_SHADER).toContain("uniform float u_dispersion;");
+    expect(SIMULATION_FRAGMENT_SHADER).toContain("uniform float u_dispersion_seed;");
+    expect(SIMULATION_FRAGMENT_SHADER).toContain("u_dispersion > 0.001");
+    expect(SIMULATION_FRAGMENT_SHADER).toContain("scatterImpulse");
+    expect(SIMULATION_FRAGMENT_SHADER).toContain("attractFactor");
   });
 });

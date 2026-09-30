@@ -9,7 +9,7 @@ interface SceneCanvasProps {
   size?: number;
 }
 
-export function SceneCanvas({ text = "code", size = 48 }: SceneCanvasProps) {
+export function SceneCanvas({ text = "fahreza", size = 48 }: SceneCanvasProps) {
   return (
     <div className="absolute inset-0 w-full h-full bg-[#090909]">
       <Canvas
