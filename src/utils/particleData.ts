@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import avatarData from "@/data/partikel.json";
 
 /**
  * Samples particle positions from a 2D text rendering so particles
@@ -162,11 +163,51 @@ export function generateInitialParticleData(size: number): Float32Array {
   return generateTextParticleData("code", size);
 }
 
+export function generateAvatarParticleData(size: number = 110): Float32Array {
+  const count = size * size;
+  const data = new Float32Array(count * 4);
+  const positions = avatarData.positions;
+  const total = positions.length;
+
+  const targetScale = 2.9;
+  const centerOffsetX = 0.505;
+  const centerOffsetY = 0.42;
+
+  for (let i = 0; i < count; i++) {
+    const i4 = i * 4;
+    const pt = positions[i % total];
+    const rawX = pt[0];
+    const rawY = pt[1];
+
+    // Subtle jitter if count > total
+    const jitter = i >= total ? (Math.random() - 0.5) * 0.015 : 0;
+
+    const x = (rawX - centerOffsetX) * targetScale + jitter;
+    const y = (rawY - centerOffsetY) * targetScale + jitter;
+
+    // 3D head curvature: center of face (glasses/nose/mouth) curves forward (+Z)
+    const dx = (rawX - 0.46) * 1.3;
+    const dy = rawY - 0.42;
+    const distFromCenter = Math.sqrt(dx * dx + dy * dy);
+    const z = Math.max(-0.25, 0.20 * (1.0 - Math.min(distFromCenter, 1.4)) - 0.08) + (Math.random() - 0.5) * 0.02;
+
+    const brightness = 0.65 + Math.random() * 0.35;
+
+    data[i4 + 0] = x;
+    data[i4 + 1] = y;
+    data[i4 + 2] = z;
+    data[i4 + 3] = brightness;
+  }
+
+  return data;
+}
+
 export function createPositionDataTexture(
   size: number,
   text: string = "code"
 ): THREE.DataTexture {
-  const data = generateTextParticleData(text, size);
+  const isAvatar = text.toUpperCase() === "AVATAR";
+  const data = isAvatar ? generateAvatarParticleData(size) : generateTextParticleData(text, size);
   const texture = new THREE.DataTexture(
     data,
     size,

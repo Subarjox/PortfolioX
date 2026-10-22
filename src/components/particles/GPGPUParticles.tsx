@@ -9,13 +9,13 @@ import { PARTICLE_VERTEX_SHADER } from "@/shaders/render/particles.vert";
 import { PARTICLE_FRAGMENT_SHADER } from "@/shaders/render/particles.frag";
 
 interface GPGPUParticlesProps {
-  size?: number; // 48 gives 48*48 = 2,304 discrete stippled particles matching partikle.png
+  size?: number; // 110 gives 110*110 = 12,100 high-density particles
   text?: string;
   particleScale?: number;
 }
 
 export function GPGPUParticles({
-  size = 48,
+  size = 110,
   text = "fahreza",
   particleScale = 1.0,
 }: GPGPUParticlesProps) {

@@ -1,15 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { ROTATING_WORDS } from "../src/constants/textSequence";
-import { generateTextParticleData, createPositionDataTexture } from "../src/utils/particleData";
+import { generateTextParticleData, createPositionDataTexture, generateAvatarParticleData } from "../src/utils/particleData";
 
 describe("Text Rotation and Word Sequence", () => {
-  it("has the exact sequence: fahreza -> AI Engineer -> Software Engineer", () => {
-    expect(ROTATING_WORDS).toEqual(["fahreza", "AI Engineer", "Software Engineer"]);
+  it("has valid sequence with AI ENGINEER, SOFTWARE ENGINEER, and AVATAR", () => {
+    expect(ROTATING_WORDS.map((w) => w.toLowerCase())).toEqual([
+      "ai engineer",
+      "software engineer",
+      "avatar",
+    ]);
     expect(ROTATING_WORDS).toHaveLength(3);
   });
 
   it("generates valid particle data for each phrase in the sequence", () => {
-    const size = 48;
+    const size = 110;
     const count = size * size;
 
     for (const phrase of ROTATING_WORDS) {
@@ -29,5 +33,20 @@ describe("Text Rotation and Word Sequence", () => {
       expect(texture.image.height).toBe(size);
       texture.dispose();
     }
+  });
+
+  it("generates valid avatar particle positions and 3D depth from partikel.json", () => {
+    const size = 110;
+    const data = generateAvatarParticleData(size);
+    expect(data).toHaveLength(size * size * 4);
+
+    let hasNaN = false;
+    let maxAbs = 0;
+    for (let i = 0; i < data.length; i++) {
+      if (Number.isNaN(data[i])) hasNaN = true;
+      if (Math.abs(data[i]) > maxAbs) maxAbs = Math.abs(data[i]);
+    }
+    expect(hasNaN).toBe(false);
+    expect(maxAbs).toBeLessThan(10.0);
   });
 });

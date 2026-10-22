@@ -1,1 +1,1 @@
-export const ROTATING_WORDS = ["fahreza", "AI Engineer", "Software Engineer"] as const;
+export const ROTATING_WORDS = ["AI ENGINEER", "SOFTWARE ENGINEER", "AVATAR"] as const;

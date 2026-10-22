@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { OverlayUI } from "@/components/ui/OverlayUI";
+import { Navbar } from "@/components/ui/Navbar";
+import { DevelopmentModal } from "@/components/ui/DevelopmentModal";
 import { FeaturedProjectsSection } from "@/components/projects/FeaturedProjectsSection";
 import { ROTATING_WORDS } from "@/constants/textSequence";
 
@@ -26,9 +28,12 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen w-full bg-[#090909] text-white selection:bg-neutral-800">
+      <DevelopmentModal />
+      <Navbar />
+
       {/* Hero Section: 3D Particle Simulation */}
-      <section className="relative h-screen w-full overflow-hidden bg-[#090909]">
-        <SceneCanvas text={currentText} size={48} />
+      <section id="home" className="relative h-screen w-full overflow-hidden bg-[#090909]">
+        <SceneCanvas text={currentText} size={110} />
         <OverlayUI currentText={currentText} />
       </section>
 
