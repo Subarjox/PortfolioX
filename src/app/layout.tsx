@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BARJOX - Interactive GPGPU Particle System",
-  description: "High-end interactive GPGPU fluid particle simulation with React Three Fiber",
+  title: "Fahreza - Portfolio",
+  description: "The Best AI Engineer & Software Engineer from Cimahi",
 };
 
 export default function RootLayout({
