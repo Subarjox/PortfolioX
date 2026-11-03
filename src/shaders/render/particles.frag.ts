@@ -4,6 +4,7 @@ precision highp float;
 varying vec3 vPosition;
 varying float vDistanceToCamera;
 varying float vAlpha;
+varying float vHover;
 
 void main() {
   // Circular point coordinate check
@@ -21,8 +22,19 @@ void main() {
   vec3 white = vec3(0.98, 0.98, 1.0); // Crisp silver white
 
   float t = clamp((vPosition.z + 0.08) / 0.16, 0.0, 1.0);
-  vec3 color = mix(gold, white, t);
+  vec3 baseColor = mix(gold, white, t);
 
-  gl_FragColor = vec4(color, alpha * vAlpha);
+  // Vibrant electric blue hover tint matching user request and hover_test.png
+  vec3 blueDeep = vec3(0.08, 0.45, 1.0);  // Vivid electric blue (#1473ff)
+  vec3 blueCyan = vec3(0.30, 0.85, 1.0);  // Radiant cyan-blue (#4dd9ff)
+  vec3 hoverBlue = mix(blueDeep, blueCyan, t);
+
+  // Interpolate smoothly from base color to blue based on hover proximity
+  vec3 finalColor = mix(baseColor, hoverBlue, vHover);
+
+  // Slightly boost alpha in the hover area for a luminous glowing presence
+  float finalAlpha = alpha * mix(vAlpha, 1.0, vHover * 0.35);
+
+  gl_FragColor = vec4(finalColor, finalAlpha);
 }
 `;

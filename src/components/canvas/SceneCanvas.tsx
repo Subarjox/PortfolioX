@@ -2,7 +2,6 @@
 
 import { Canvas } from "@react-three/fiber";
 import { GPGPUParticles } from "@/components/particles/GPGPUParticles";
-import { OrbitalRings } from "@/components/canvas/OrbitalRings";
 
 interface SceneCanvasProps {
   text?: string;
@@ -22,7 +21,6 @@ export function SceneCanvas({ text = "fahreza", size = 110 }: SceneCanvasProps) 
           powerPreference: "high-performance",
         }}
       >
-        <OrbitalRings />
         <GPGPUParticles size={size} text={text} particleScale={1.0} />
       </Canvas>
     </div>
