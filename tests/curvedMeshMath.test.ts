@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { calculateCurvedVertices, calculateCardLayout } from "../src/utils/curvedMeshMath";
+import {
+  calculateCurvedVertices,
+  calculateDynamicCurveFactor,
+  calculateCardLayout,
+} from "../src/utils/curvedMeshMath";
 import { PROJECTS_DATA } from "../src/data/projectsData";
 
 describe("Curved Mesh Math & Project Data", () => {
@@ -14,6 +18,22 @@ describe("Curved Mesh Math & Project Data", () => {
     const edgeZ = calculateCurvedVertices(2.0, 0.15);
     expect(centerZ).toBe(0);
     expect(edgeZ).toBeLessThan(0); // concave bend
+  });
+
+  it("should calculate dynamic curve factor: 0 (flat kotak sempurna) at center and curved when scrolled away", () => {
+    // Card centered in view (absDiff = 0) must be completely flat (0 curve factor)
+    const centerCurve = calculateDynamicCurveFactor(0, 0.11);
+    expect(centerCurve).toBe(0);
+
+    // Any X coordinate with 0 curve factor yields exactly Z = 0 (perfect flat rectangle)
+    expect(calculateCurvedVertices(0.0, centerCurve)).toBe(0);
+    expect(calculateCurvedVertices(1.5, centerCurve)).toBe(0);
+    expect(calculateCurvedVertices(-1.5, centerCurve)).toBe(0);
+
+    // Card scrolled away (absDiff >= 0.70) smoothly reaches full curvature (sedikit melengkung)
+    const scrolledCurve = calculateDynamicCurveFactor(1.0, 0.11);
+    expect(scrolledCurve).toBeCloseTo(0.11, 3);
+    expect(calculateCurvedVertices(1.5, scrolledCurve)).toBeLessThan(0);
   });
 
   it("should layout desktop cards with widened spacing (at least 4.5 units)", () => {

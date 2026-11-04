@@ -16,6 +16,22 @@ export function calculateCurvedVertices(x: number, curveFactor: number = 0.12): 
   return z === 0 ? 0 : z;
 }
 
+/**
+ * Calculates dynamic curvature factor based on card proximity to center focus:
+ * - Center card (diff ~ 0): returns 0 (perfect flat rectangle / "kotak sempurna").
+ * - Scrolled/offset card (absDiff increases): smoothly curves up to maxCurveFactor ("sedikit melengkung").
+ */
+export function calculateDynamicCurveFactor(
+  absDiff: number,
+  maxCurveFactor: number = 0.11
+): number {
+  const edge0 = 0.05;
+  const edge1 = 0.70;
+  const t = Math.max(0, Math.min(1, (absDiff - edge0) / (edge1 - edge0)));
+  const smooth = t * t * (3 - 2 * t);
+  return smooth * maxCurveFactor;
+}
+
 export interface CardLayoutResult {
   x: number;
   y: number;
@@ -27,8 +43,8 @@ export interface CardLayoutResult {
 
 /**
  * Calculates 3D position, orientation, and focus scale for each project card.
- * - Focused project (currently highlighted): scaled larger (1.05x).
- * - Other projects: scaled down to 70% (0.70x).
+ * - Focused project (currently highlighted in center): scaled larger (1.05x), flat and level.
+ * - Other projects: scaled down to 70% (0.70x), curved and tilted along the ribbon.
  * - Desktop: Horizontal curved cylinder track with widened spacing.
  * - Mobile: Diagonal staggered 3D cascade with comfortable depth offsets.
  */
@@ -49,21 +65,22 @@ export function calculateCardLayout(
 
   if (isMobile) {
     // Staggered cascade matching phoneprojeclist.png
-    // Active card (diff = 0) is foreground left-center
-    // Next cards (diff > 0) are higher, shifted right, and deeper in Z
+    // Active card (diff = 0) is foreground left-center, square to camera
+    // Next cards (diff > 0) are higher, shifted right, deeper in Z, and angled
     const x = diff * MOBILE_CARD_SPACING - 0.25;
     const y = diff * 1.35 + 0.1;
     const z = -Math.abs(diff) * 1.3;
-    const rotationY = -0.15;
-    const rotationZ = -0.06;
+    const rotationY = -0.15 * (1 - smoothProximity * 0.7);
+    const rotationZ = -0.06 * (1 - smoothProximity * 0.7);
     return { x, y, z, rotationY, rotationZ, scale };
   } else {
     // Horizontal curved ribbon matching Project List.png with widened breathing room
+    // When in center (diff = 0), card stands completely upright and square (rotationZ = 0)
     const x = diff * DESKTOP_CARD_SPACING;
     const y = 0;
     const z = -Math.pow(x * 0.15, 2);
     const rotationY = -x * 0.035;
-    const rotationZ = -0.02;
+    const rotationZ = -0.02 * (1 - smoothProximity);
     return { x, y, z, rotationY, rotationZ, scale };
   }
 }

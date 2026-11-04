@@ -4,7 +4,11 @@ import React, { useMemo, useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { ProjectItem } from "@/data/projectsData";
-import { calculateCardLayout, calculateCurvedVertices } from "@/utils/curvedMeshMath";
+import {
+  calculateCardLayout,
+  calculateCurvedVertices,
+  calculateDynamicCurveFactor,
+} from "@/utils/curvedMeshMath";
 
 interface CurvedProjectCardProps {
   project: ProjectItem;
@@ -22,8 +26,9 @@ export function CurvedProjectCard({
   isMobile,
 }: CurvedProjectCardProps) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const currentCurveRef = useRef<number | null>(null);
 
-  // Generate curved plane geometry with concave cylinder arc
+  // Generate segmented plane geometry ready for dynamic vertex curvature
   const geometry = useMemo(() => {
     const width = isMobile ? 2.6 : 3.4;
     const height = isMobile ? 3.4 : 2.2;
@@ -31,16 +36,21 @@ export function CurvedProjectCard({
     const segmentsY = 1;
     const geo = new THREE.PlaneGeometry(width, height, segmentsX, segmentsY);
 
+    // Initial calculation of vertex positions according to initial progress
+    const activeFloat = progress * (totalCards - 1);
+    const absDiff = Math.abs(index - activeFloat);
+    const maxCurve = isMobile ? 0.08 : 0.11;
+    const initialCurve = calculateDynamicCurveFactor(absDiff, maxCurve);
+    currentCurveRef.current = initialCurve;
+
     const pos = geo.attributes.position;
-    const curveFactor = isMobile ? 0.08 : 0.11;
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
-      const z = calculateCurvedVertices(x, curveFactor);
+      const z = calculateCurvedVertices(x, initialCurve);
       pos.setZ(i, z);
     }
-    geo.computeVertexNormals();
     return geo;
-  }, [isMobile]);
+  }, [isMobile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clean up WebGL geometry on unmount or breakpoint change to prevent memory leaks
   useEffect(() => {
@@ -123,7 +133,7 @@ export function CurvedProjectCard({
     };
   }, [imageTexture]);
 
-  // Dynamic position with frame-rate independent exponential decay damping
+  // Dynamic position, orientation, scale, and curvature damping in animation loop
   useFrame((_, delta) => {
     if (!meshRef.current) return;
     const target = calculateCardLayout(index, progress, totalCards, isMobile);
@@ -179,10 +189,56 @@ export function CurvedProjectCard({
       lambda,
       delta
     );
+
+    // Dynamic curvature transition:
+    // When card is in the center (absDiff = 0): bends to 0 (perfect flat rectangle / "kotak sempurna")
+    // When moved/scrolled away (absDiff increases): smoothly curves to maxCurve ("sedikit melengkung")
+    const activeFloat = progress * (totalCards - 1);
+    const absDiff = Math.abs(index - activeFloat);
+    const maxCurve = isMobile ? 0.08 : 0.11;
+    const targetCurve = calculateDynamicCurveFactor(absDiff, maxCurve);
+
+    if (currentCurveRef.current === null) {
+      currentCurveRef.current = targetCurve;
+    }
+
+    const nextCurve = THREE.MathUtils.damp(
+      currentCurveRef.current,
+      targetCurve,
+      lambda,
+      delta
+    );
+    currentCurveRef.current = nextCurve;
+
+    // Update geometry vertex Z positions
+    const pos = geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const z = calculateCurvedVertices(x, nextCurve);
+      pos.setZ(i, z);
+    }
+    pos.needsUpdate = true;
   });
 
   return (
-    <mesh ref={meshRef} geometry={geometry}>
+    <mesh
+      ref={meshRef}
+      geometry={geometry}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (project.href && project.href !== "#") {
+          window.open(project.href, "_blank", "noopener,noreferrer");
+        }
+      }}
+      onPointerOver={() => {
+        if (project.href && project.href !== "#") {
+          document.body.style.cursor = "pointer";
+        }
+      }}
+      onPointerOut={() => {
+        document.body.style.cursor = "auto";
+      }}
+    >
       <meshBasicMaterial
         map={imageTexture || texture || undefined}
         color="#ffffff"

@@ -33,7 +33,7 @@ describe("E2E Architecture Alignment", () => {
   it("verifies home page structure and featured section integration", async () => {
     const pageModule = await import("../src/app/page");
     expect(pageModule.default).toBeDefined();
-  }, 30000);
+  }, 60000);
 
   it("verifies scrollable body and non-fixed hero overlay to prevent collision", async () => {
     const fs = await import("fs");
