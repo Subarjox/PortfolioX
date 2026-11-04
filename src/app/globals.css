@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,300..900&family=Source+Code+Pro:ital,wght@0,300..900;1,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Montserrat:ital,wght@0,300..900;1,300..900&family=Source+Code+Pro:ital,wght@0,300..900;1,300..900&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -22,4 +22,73 @@ body {
 
 .font-mono, code, pre {
   font-family: "Source Code Pro", monospace;
+}
+
+.font-handwriting {
+  font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+}
+
+/* Subtle Floating Animations for Editorial Canvas */
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes gentle-float-alt {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float {
+  animation: gentle-float 5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: gentle-float 6s ease-in-out infinite 1.5s;
+}
+
+.animate-float-slow {
+  animation: gentle-float-alt 7s ease-in-out infinite 0.8s;
+}
+
+/* Marquee & Wireframe Animations for Section Others */
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 45s linear infinite;
+}
+
+.animate-marquee:hover,
+.animate-marquee:focus-within {
+  animation-play-state: paused;
+}
+
+@keyframes slow-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-slow-spin {
+  animation: slow-spin 60s linear infinite;
 }

@@ -23,16 +23,16 @@ export function ProjectsOverlay({
     <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-6 md:p-12 select-none text-neutral-900">
       {/* Top Header */}
       <header className="flex items-center justify-between">
-        <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-neutral-900">
-          Featured
+        <h2 className="text-5xl md:text-5xl font-black tracking-tight text-neutral-900">
+          Featured Projects
         </h2>
 
         <a
-          href="#projects"
+          href="#others"
           className="pointer-events-auto flex items-center gap-1.5 font-mono text-xs md:text-sm tracking-wider text-neutral-600 hover:text-neutral-950 transition-colors"
         >
           <span>Beyond The Projects</span>
-          <span className="text-sm font-sans">↘</span>
+          <span className="text-sm">↓</span>
         </a>
       </header>
 
