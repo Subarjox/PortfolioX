@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { ArrowRight, ExternalLink, Sparkles, Award, Users, FileText, CheckCircle2 } from "lucide-react";
+import { ArrowRight, ExternalLink, Sparkles, Award, Users, FileText } from "lucide-react";
 import { ExperienceModal } from "./ExperienceModal";
 import {
   WINNICODE_EXPERIENCE,
@@ -9,6 +9,12 @@ import {
   TIMELINE_STOPS,
   type ExperienceItem,
 } from "@/data/experienceData";
+
+interface CachedFloatElement {
+  el: HTMLElement;
+  c: number;
+  k: number;
+}
 
 export function ExperienceSection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -18,51 +24,51 @@ export function ExperienceSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExperience, setSelectedExperience] = useState<ExperienceItem>(WINNICODE_EXPERIENCE);
 
-  const calculatePanelFractions = useCallback(() => {
-    if (!trackRef.current) return [0, 0.33, 0.66, 1];
-    const vw = window.innerWidth;
-    const travel = Math.max(1, trackRef.current.offsetWidth - vw);
-
-    return TIMELINE_STOPS.map((stop) => {
-      const el = document.getElementById(stop.targetId);
-      if (!el) return 0;
-      return Math.min(1, Math.max(0, (el.offsetLeft + el.offsetWidth / 2 - vw / 2) / travel));
-    });
-  }, []);
+  // Performance cache refs to eliminate forced reflows and DOM querying in 60fps scroll loop
+  const panelFractionsRef = useRef<number[]>([0, 0.33, 0.66, 1]);
+  const floatElsRef = useRef<CachedFloatElement[]>([]);
+  const travelRef = useRef<number>(1);
+  const activeDotRef = useRef<number>(0);
 
   const update = useCallback(() => {
     if (!containerRef.current || !trackRef.current || !fillRef.current) return;
-    const vw = window.innerWidth;
-    const trackWidth = trackRef.current.offsetWidth;
-    const travel = Math.max(1, trackWidth - vw);
+    const travel = travelRef.current;
     const rect = containerRef.current.getBoundingClientRect();
     const scrolled = -rect.top;
     const p = Math.max(0, Math.min(1, scrolled / travel));
     const cur = p * travel;
 
+    // GPU-accelerated horizontal track translation
     trackRef.current.style.transform = `translate3d(${-cur}px, 0, 0)`;
-    fillRef.current.style.width = `${p * 100}%`;
 
-    const floatEls = trackRef.current.querySelectorAll<HTMLElement>("[data-k]");
-    floatEls.forEach((f) => {
-      const c = (f as unknown as { _c?: number })._c ?? 0;
-      const k = parseFloat(f.dataset.k || "0");
-      f.style.transform = `translate3d(${-(c - cur) * k}px, 0, 0)`;
-    });
+    // GPU-accelerated timeline progress bar (scaleX instead of width reflow)
+    fillRef.current.style.transform = `scaleX(${p})`;
 
-    const fractions = calculatePanelFractions();
+    // Move pre-cached parallax float elements with zero DOM lookups
+    const floats = floatElsRef.current;
+    for (let i = 0; i < floats.length; i++) {
+      const item = floats[i];
+      item.el.style.transform = `translate3d(${-(item.c - cur) * item.k}px, 0, 0)`;
+    }
+
+    // Determine closest stop using pre-calculated panel fractions
+    const fractions = panelFractionsRef.current;
     let closest = 0;
     let minDiff = 999;
-    fractions.forEach((frac, i) => {
-      const diff = Math.abs(frac - p);
+    for (let i = 0; i < fractions.length; i++) {
+      const diff = Math.abs(fractions[i] - p);
       if (diff < minDiff) {
         minDiff = diff;
         closest = i;
       }
-    });
+    }
 
-    setActiveDotIndex(closest);
-  }, [calculatePanelFractions]);
+    // Only trigger React state update if the active index actually changed
+    if (closest !== activeDotRef.current) {
+      activeDotRef.current = closest;
+      setActiveDotIndex(closest);
+    }
+  }, []);
 
   const layout = useCallback(() => {
     if (!containerRef.current || !trackRef.current) return;
@@ -70,14 +76,25 @@ export function ExperienceSection() {
     const vh = window.innerHeight;
     const trackWidth = trackRef.current.offsetWidth;
     const travel = Math.max(1, trackWidth - vw);
+    travelRef.current = travel;
     containerRef.current.style.height = `${travel + vh}px`;
 
-    const floatEls = trackRef.current.querySelectorAll<HTMLElement>("[data-k]");
-    floatEls.forEach((f) => {
+    // Cache float element centers once during layout
+    const floatNodes = trackRef.current.querySelectorAll<HTMLElement>("[data-k]");
+    const cachedList: CachedFloatElement[] = [];
+    floatNodes.forEach((f) => {
       const pn = f.closest<HTMLElement>(".panel-slide");
-      if (pn) {
-        (f as unknown as { _c?: number })._c = pn.offsetLeft + pn.offsetWidth / 2 - vw / 2;
-      }
+      const c = pn ? pn.offsetLeft + pn.offsetWidth / 2 - vw / 2 : 0;
+      const k = parseFloat(f.dataset.k || "0");
+      cachedList.push({ el: f, c, k });
+    });
+    floatElsRef.current = cachedList;
+
+    // Cache timeline panel fractions once during layout
+    panelFractionsRef.current = TIMELINE_STOPS.map((stop) => {
+      const el = document.getElementById(stop.targetId);
+      if (!el) return 0;
+      return Math.min(1, Math.max(0, (el.offsetLeft + el.offsetWidth / 2 - vw / 2) / travel));
     });
 
     update();
@@ -112,13 +129,11 @@ export function ExperienceSection() {
   }, [layout, update]);
 
   const handleDotClick = (index: number) => {
-    if (!containerRef.current || !trackRef.current) return;
-    const vw = window.innerWidth;
-    const travel = Math.max(1, trackRef.current.offsetWidth - vw);
+    if (!containerRef.current) return;
+    const travel = travelRef.current;
     const rect = containerRef.current.getBoundingClientRect();
     const top = rect.top + window.scrollY;
-
-    const fractions = calculatePanelFractions();
+    const fractions = panelFractionsRef.current;
     const targetScroll = top + fractions[index] * travel;
 
     window.scrollTo({
@@ -309,84 +324,108 @@ export function ExperienceSection() {
               </div>
             </div>
 
-            {/* Parallax Floating Real Web Screenshots (NO GIMMICKS) */}
+            {/* Parallax Floating Real Web Screenshots */}
             {/* Card 1: Real CMS News Table Screenshot */}
             <div
               data-k="0.10"
-              onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
-              className="absolute left-[6%] top-[10%] w-52 sm:w-60 md:w-64 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] hidden md:block rotate-[-3deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+              className="absolute left-[6%] top-[10%] hidden md:block will-change-transform"
             >
-              <img
-                src="/images/experience/winnicode/20.png"
-                alt="Winnicode News CMS - List & Kelola Berita"
-                className="w-full h-auto object-cover"
-              />
-              <div className="p-2 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
-                <span className="text-[10px] font-mono text-neutral-300 font-medium">CMS Kelola Berita</span>
-                <span className="text-[9px] font-mono text-blue-400">Next.js · REST API</span>
+              <div
+                onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
+                className="w-52 sm:w-60 md:w-64 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[-3deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+              >
+                <img
+                  src="/images/experience/winnicode/20.png"
+                  alt="Winnicode News CMS - List & Kelola Berita"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto object-cover"
+                />
+                <div className="p-2 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-neutral-300 font-medium">CMS Kelola Berita</span>
+                  <span className="text-[9px] font-mono text-blue-400">Next.js · REST API</span>
+                </div>
               </div>
             </div>
 
             {/* Card 2: Real Analytics Dashboard Screenshot */}
             <div
               data-k="-0.08"
-              onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
-              className="absolute right-[8%] top-[12%] w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] hidden md:block rotate-[2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+              className="absolute right-[8%] top-[12%] hidden md:block will-change-transform"
             >
-              <img
-                src="/images/experience/winnicode/21.png"
-                alt="Live Reader Analytics Dashboard"
-                className="w-full h-auto object-cover"
-              />
-              <div className="p-2 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
-                <span className="text-[10px] font-mono text-neutral-300 font-medium">Dasbor Analitik</span>
-                <span className="text-[9px] font-mono text-emerald-400">Live Metrics</span>
+              <div
+                onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
+                className="w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+              >
+                <img
+                  src="/images/experience/winnicode/21.png"
+                  alt="Live Reader Analytics Dashboard"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto object-cover"
+                />
+                <div className="p-2 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-neutral-300 font-medium">Dasbor Analitik</span>
+                  <span className="text-[9px] font-mono text-emerald-400">Live Metrics</span>
+                </div>
               </div>
             </div>
 
             {/* Card 3: Real Content Editor Screenshot */}
             <div
               data-k="-0.12"
-              onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
-              className="absolute left-[10%] bottom-[14%] w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] hidden md:block rotate-[2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+              className="absolute left-[10%] bottom-[14%] hidden md:block will-change-transform"
             >
-              <img
-                src="/images/experience/winnicode/22.png"
-                alt="Interactive Content Editor"
-                className="w-full h-auto object-cover"
-              />
-              <div className="p-2 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
-                <span className="text-[9px] font-mono text-neutral-300">Editor Artikel Interaktif</span>
+              <div
+                onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
+                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+              >
+                <img
+                  src="/images/experience/winnicode/22.png"
+                  alt="Interactive Content Editor"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto object-cover"
+                />
+                <div className="p-2 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
+                  <span className="text-[9px] font-mono text-neutral-300">Editor Artikel Interaktif</span>
+                </div>
               </div>
             </div>
 
             {/* Card 4: Real Portal Interface */}
             <div
               data-k="0.07"
-              onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
-              className="absolute right-[12%] bottom-[16%] w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] hidden md:block rotate-[-2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+              className="absolute right-[12%] bottom-[16%] hidden md:block will-change-transform"
             >
-              <img
-                src="/images/experience/winnicode/24.png"
-                alt="Winnicode Portal Berita"
-                className="w-full h-auto object-cover"
-              />
-              <div className="p-2 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
-                <span className="text-[9px] font-mono text-neutral-300">Portal Publikasi Berita</span>
+              <div
+                onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
+                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[-2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+              >
+                <img
+                  src="/images/experience/winnicode/24.png"
+                  alt="Winnicode Portal Berita"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto object-cover"
+                />
+                <div className="p-2 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
+                  <span className="text-[9px] font-mono text-neutral-300">Portal Publikasi Berita</span>
+                </div>
               </div>
             </div>
 
             {/* Floating Tags */}
             <div
               data-k="-0.18"
-              className="absolute left-[28%] bottom-[8%] px-4 py-2 rounded-xl bg-blue-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[-4deg] pointer-events-none"
+              className="absolute left-[28%] bottom-[8%] px-4 py-2 rounded-xl bg-blue-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[-4deg] pointer-events-none will-change-transform"
             >
               Fullstack Web & CMS Architecture
             </div>
 
             <div
               data-k="0.16"
-              className="absolute right-[28%] bottom-[10%] px-4 py-2 rounded-xl bg-emerald-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[4deg] pointer-events-none"
+              className="absolute right-[28%] bottom-[10%] px-4 py-2 rounded-xl bg-emerald-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[4deg] pointer-events-none will-change-transform"
             >
               Predikat A · Sangat Baik Sekali
             </div>
@@ -482,46 +521,58 @@ export function ExperienceSection() {
               </div>
             </div>
 
-            {/* Parallax Floating Cards: HEAVY FOCUS ON PEOPLE & TEAM PHOTOS */}
+            {/* Parallax Floating Cards: TEAM PHOTOS */}
             {/* Card 1: Team selfie with laptop in office */}
             <div
               data-k="0.11"
-              onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
-              className="absolute left-[6%] top-[8%] w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] hidden md:block rotate-[-4deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+              className="absolute left-[6%] top-[8%] hidden md:block will-change-transform"
             >
-              <div className="aspect-[4/3] w-full overflow-hidden">
-                <img
-                  src="/images/experience/irostech/orang/team-1.jpg"
-                  alt="Team engineering Irostech demo laptop"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-2.5 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-[11px] font-mono text-white font-medium">Tim Engineering</span>
+              <div
+                onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
+                className="w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[-4deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+              >
+                <div className="aspect-[4/3] w-full overflow-hidden">
+                  <img
+                    src="/images/experience/irostech/orang/team-1.jpg"
+                    alt="Team engineering Irostech demo laptop"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <span className="text-[9px] font-mono text-neutral-400">Bandung</span>
+                <div className="p-2.5 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[11px] font-mono text-white font-medium">Tim Engineering</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-neutral-400">Bandung</span>
+                </div>
               </div>
             </div>
 
             {/* Card 2: Team presentation on screen */}
             <div
               data-k="-0.09"
-              onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
-              className="absolute right-[7%] top-[10%] w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] hidden md:block rotate-[3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+              className="absolute right-[7%] top-[10%] hidden md:block will-change-transform"
             >
-              <div className="aspect-[4/3] w-full overflow-hidden">
-                <img
-                  src="/images/experience/irostech/orang/team-2.jpg"
-                  alt="Presentasi sistem di ruang rapat"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-2.5 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-[11px] font-mono text-white font-medium">Presentasi Sistem</span>
+              <div
+                onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
+                className="w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+              >
+                <div className="aspect-[4/3] w-full overflow-hidden">
+                  <img
+                    src="/images/experience/irostech/orang/team-2.jpg"
+                    alt="Presentasi sistem di ruang rapat"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-2.5 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[11px] font-mono text-white font-medium">Presentasi Sistem</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -529,66 +580,84 @@ export function ExperienceSection() {
             {/* Card 3: Team selfie fun in office */}
             <div
               data-k="-0.14"
-              onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
-              className="absolute left-[9%] bottom-[12%] w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] hidden md:block rotate-[3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+              className="absolute left-[9%] bottom-[12%] hidden md:block will-change-transform"
             >
-              <div className="aspect-[4/3] w-full overflow-hidden">
-                <img
-                  src="/images/experience/irostech/orang/team-3.jpg"
-                  alt="Kebersamaan tim developer"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-2 bg-neutral-950/90 border-t border-white/10">
-                <span className="text-[10px] font-mono text-neutral-200">Kekompakan Tim</span>
+              <div
+                onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
+                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+              >
+                <div className="aspect-[4/3] w-full overflow-hidden">
+                  <img
+                    src="/images/experience/irostech/orang/team-3.jpg"
+                    alt="Kebersamaan tim developer"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-2 bg-neutral-950/90 border-t border-white/10">
+                  <span className="text-[10px] font-mono text-neutral-200">Kekompakan Tim</span>
+                </div>
               </div>
             </div>
 
             {/* Card 4: Team standup & discussion */}
             <div
               data-k="0.08"
-              onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
-              className="absolute right-[10%] bottom-[14%] w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] hidden md:block rotate-[-3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+              className="absolute right-[10%] bottom-[14%] hidden md:block will-change-transform"
             >
-              <div className="aspect-[4/3] w-full overflow-hidden">
-                <img
-                  src="/images/experience/irostech/orang/team-4.jpg"
-                  alt="Team standup & koordinasi"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-2 bg-neutral-950/90 border-t border-white/10">
-                <span className="text-[10px] font-mono text-neutral-200">Diskusi & Evaluasi Fitur</span>
+              <div
+                onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
+                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[-3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+              >
+                <div className="aspect-[4/3] w-full overflow-hidden">
+                  <img
+                    src="/images/experience/irostech/orang/team-4.jpg"
+                    alt="Team standup & koordinasi"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-2 bg-neutral-950/90 border-t border-white/10">
+                  <span className="text-[10px] font-mono text-neutral-200">Diskusi & Evaluasi Fitur</span>
+                </div>
               </div>
             </div>
 
             {/* Floating Thumbnail: Project MBG Screenshot */}
             <div
               data-k="-0.04"
-              onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
-              className="absolute left-[26%] top-[6%] w-44 rounded-xl overflow-hidden border border-white/15 bg-neutral-950 shadow-xl hidden xl:block rotate-[2deg] cursor-pointer hover:scale-105 transition-transform"
+              className="absolute left-[26%] top-[6%] hidden xl:block will-change-transform"
             >
-              <img
-                src="/images/experience/irostech/projects/dashboard-admin.png"
-                alt="Dashboard MBG"
-                className="w-full h-auto object-cover opacity-80"
-              />
-              <div className="p-1.5 text-center text-[10px] font-mono text-neutral-400">
-                Portal MBG & AI
+              <div
+                onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
+                className="w-44 rounded-xl overflow-hidden border border-white/15 bg-neutral-950 shadow-xl rotate-[2deg] cursor-pointer hover:scale-105 transition-transform duration-300"
+              >
+                <img
+                  src="/images/experience/irostech/projects/dashboard-admin.png"
+                  alt="Dashboard MBG"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto object-cover opacity-80"
+                />
+                <div className="p-1.5 text-center text-[10px] font-mono text-neutral-400">
+                  Portal MBG & AI
+                </div>
               </div>
             </div>
 
             {/* Floating Tags */}
             <div
               data-k="-0.2"
-              className="absolute left-[30%] bottom-[8%] px-4 py-2 rounded-xl bg-emerald-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[-4deg] pointer-events-none"
+              className="absolute left-[30%] bottom-[8%] px-4 py-2 rounded-xl bg-emerald-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[-4deg] pointer-events-none will-change-transform"
             >
               Program Makan Bergizi Gratis (MBG) · BRIN
             </div>
 
             <div
               data-k="0.18"
-              className="absolute right-[30%] bottom-[10%] px-4 py-2 rounded-xl bg-sky-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[4deg] pointer-events-none"
+              className="absolute right-[30%] bottom-[10%] px-4 py-2 rounded-xl bg-sky-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[4deg] pointer-events-none will-change-transform"
             >
               FastAPI · LLM Vision · Discord Webhook
             </div>
@@ -628,12 +697,12 @@ export function ExperienceSection() {
         >
           {/* Base Track Line */}
           <div className="relative w-full h-[3px] bg-neutral-800 rounded-full">
-            {/* Blue Progress Bar */}
+            {/* GPU-accelerated scaleX progress bar */}
             <div
               id="experience-timeline-fill"
               ref={fillRef}
-              className="absolute left-0 top-0 h-full bg-blue-600 rounded-full shadow-[0_0_14px_rgba(37,99,235,0.85)] transition-all duration-75"
-              style={{ width: "0%" }}
+              className="absolute left-0 top-0 h-full w-full bg-blue-600 rounded-full shadow-[0_0_14px_rgba(37,99,235,0.85)] origin-left will-change-transform"
+              style={{ transform: "scaleX(0)" }}
             />
 
             {/* Interactive Timeline Dots */}

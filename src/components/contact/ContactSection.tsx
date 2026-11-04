@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Github, Instagram, Linkedin, Mail } from "lucide-react";
+import { Github, Instagram, Linkedin, Mail, Download } from "lucide-react";
 
 export function ContactSection() {
   return (
@@ -16,14 +16,16 @@ export function ContactSection() {
           Let’s Connect &amp; Work Together
         </h2>
 
-        {/* Primary Resume Action Button */}
+        {/* Primary Resume Action Button: Downloads CV_ENG.pdf */}
         <a
-          href="https://resume-phi-smoky-95.vercel.app/index.html"
+          href="/CV_ENG.pdf"
+          download="CV_ENG.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center px-12 sm:px-16 py-3.5 sm:py-4 rounded-2xl bg-black text-white font-bold text-base sm:text-lg tracking-wide hover:bg-neutral-800 transition-all duration-200 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 cursor-pointer"
+          className="inline-flex items-center justify-center gap-2.5 px-10 sm:px-14 py-3.5 sm:py-4 rounded-2xl bg-black text-white font-bold text-base sm:text-lg tracking-wide hover:bg-neutral-800 transition-all duration-200 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 cursor-pointer"
         >
-          Resume
+          <Download className="w-5 h-5 text-white" />
+          <span>Resume (CV)</span>
         </a>
 
         {/* Subtitle */}

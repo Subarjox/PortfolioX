@@ -17,7 +17,8 @@ describe("ContactSection Component", () => {
     expect(fileContent).toContain("Let’s Connect &amp; Work Together");
     expect(fileContent).toContain("Resume");
     expect(fileContent).toContain("or through these socials");
-    expect(fileContent).toContain("https://resume-phi-smoky-95.vercel.app/index.html");
+    expect(fileContent).toContain("/CV_ENG.pdf");
+    expect(fileContent).toContain('download="CV_ENG.pdf"');
     expect(fileContent).toContain("linkedin.com");
     expect(fileContent).toContain("github.com/Subarjox");
     expect(fileContent).toContain("instagram.com");
