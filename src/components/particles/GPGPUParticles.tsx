@@ -12,12 +12,14 @@ interface GPGPUParticlesProps {
   size?: number; // 110 gives 110*110 = 12,100 high-density particles
   text?: string;
   particleScale?: number;
+  isVisible?: boolean;
 }
 
 export function GPGPUParticles({
   size = 110,
   text = "fahreza",
   particleScale = 1.0,
+  isVisible = true,
 }: GPGPUParticlesProps) {
   const { stepSimulation, getCurrentTexture } = useGPGPUSimulation({
     size,
@@ -83,6 +85,7 @@ export function GPGPUParticles({
 
   // Frame simulation and render update
   useFrame(({ pointer, camera, clock }, delta) => {
+    if (!isVisible) return;
     // Unproject pointer to 3D world plane z=0
     raycaster.setFromCamera(pointer, camera);
     const intersection = new THREE.Vector3();

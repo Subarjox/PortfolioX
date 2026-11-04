@@ -32,8 +32,11 @@ export function ExperienceSection() {
 
   const update = useCallback(() => {
     if (!containerRef.current || !trackRef.current || !fillRef.current) return;
-    const travel = travelRef.current;
     const rect = containerRef.current.getBoundingClientRect();
+    const vh = window.innerHeight;
+    if (rect.bottom < -100 || rect.top > vh + 100) return;
+
+    const travel = travelRef.current;
     const scrolled = -rect.top;
     const p = Math.max(0, Math.min(1, scrolled / travel));
     const cur = p * travel;
@@ -184,7 +187,7 @@ export function ExperienceSection() {
         <div
           id="experience-track"
           ref={trackRef}
-          className="flex items-center h-full w-max will-change-transform"
+          className="flex items-center h-full w-max"
         >
           {/* PANEL 1: INTRO */}
           <div
@@ -328,11 +331,11 @@ export function ExperienceSection() {
             {/* Card 1: Real CMS News Table Screenshot */}
             <div
               data-k="0.10"
-              className="absolute left-[6%] top-[10%] hidden md:block will-change-transform"
+              className="absolute left-[6%] top-[10%] hidden md:block"
             >
               <div
                 onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
-                className="w-52 sm:w-60 md:w-64 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[-3deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+                className="w-52 sm:w-60 md:w-64 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-2xl shadow-black/60 rotate-[-3deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
               >
                 <img
                   src="/images/experience/winnicode/20.png"
@@ -351,11 +354,11 @@ export function ExperienceSection() {
             {/* Card 2: Real Analytics Dashboard Screenshot */}
             <div
               data-k="-0.08"
-              className="absolute right-[8%] top-[12%] hidden md:block will-change-transform"
+              className="absolute right-[8%] top-[12%] hidden md:block"
             >
               <div
                 onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
-                className="w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+                className="w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-2xl shadow-black/60 rotate-[2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
               >
                 <img
                   src="/images/experience/winnicode/21.png"
@@ -374,11 +377,11 @@ export function ExperienceSection() {
             {/* Card 3: Real Content Editor Screenshot */}
             <div
               data-k="-0.12"
-              className="absolute left-[10%] bottom-[14%] hidden md:block will-change-transform"
+              className="absolute left-[10%] bottom-[14%] hidden md:block"
             >
               <div
                 onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
-                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-2xl shadow-black/60 rotate-[2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
               >
                 <img
                   src="/images/experience/winnicode/22.png"
@@ -396,11 +399,11 @@ export function ExperienceSection() {
             {/* Card 4: Real Portal Interface */}
             <div
               data-k="0.07"
-              className="absolute right-[12%] bottom-[16%] hidden md:block will-change-transform"
+              className="absolute right-[12%] bottom-[16%] hidden md:block"
             >
               <div
                 onClick={() => openExperienceModal(WINNICODE_EXPERIENCE)}
-                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[-2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
+                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-2xl shadow-black/60 rotate-[-2deg] cursor-pointer hover:scale-105 hover:border-blue-400 transition-all duration-300"
               >
                 <img
                   src="/images/experience/winnicode/24.png"
@@ -418,14 +421,14 @@ export function ExperienceSection() {
             {/* Floating Tags */}
             <div
               data-k="-0.18"
-              className="absolute left-[28%] bottom-[8%] px-4 py-2 rounded-xl bg-blue-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[-4deg] pointer-events-none will-change-transform"
+              className="absolute left-[28%] bottom-[8%] px-4 py-2 rounded-xl bg-blue-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[-4deg] pointer-events-none"
             >
               Fullstack Web & CMS Architecture
             </div>
 
             <div
               data-k="0.16"
-              className="absolute right-[28%] bottom-[10%] px-4 py-2 rounded-xl bg-emerald-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[4deg] pointer-events-none will-change-transform"
+              className="absolute right-[28%] bottom-[10%] px-4 py-2 rounded-xl bg-emerald-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[4deg] pointer-events-none"
             >
               Predikat A · Sangat Baik Sekali
             </div>
@@ -525,11 +528,11 @@ export function ExperienceSection() {
             {/* Card 1: Team selfie with laptop in office */}
             <div
               data-k="0.11"
-              className="absolute left-[6%] top-[8%] hidden md:block will-change-transform"
+              className="absolute left-[6%] top-[8%] hidden md:block"
             >
               <div
                 onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
-                className="w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[-4deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+                className="w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-2xl shadow-black/60 rotate-[-4deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
               >
                 <div className="aspect-[4/3] w-full overflow-hidden">
                   <img
@@ -553,11 +556,11 @@ export function ExperienceSection() {
             {/* Card 2: Team presentation on screen */}
             <div
               data-k="-0.09"
-              className="absolute right-[7%] top-[10%] hidden md:block will-change-transform"
+              className="absolute right-[7%] top-[10%] hidden md:block"
             >
               <div
                 onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
-                className="w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+                className="w-52 sm:w-64 md:w-68 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-2xl shadow-black/60 rotate-[3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
               >
                 <div className="aspect-[4/3] w-full overflow-hidden">
                   <img
@@ -580,11 +583,11 @@ export function ExperienceSection() {
             {/* Card 3: Team selfie fun in office */}
             <div
               data-k="-0.14"
-              className="absolute left-[9%] bottom-[12%] hidden md:block will-change-transform"
+              className="absolute left-[9%] bottom-[12%] hidden md:block"
             >
               <div
                 onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
-                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-2xl shadow-black/60 rotate-[3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
               >
                 <div className="aspect-[4/3] w-full overflow-hidden">
                   <img
@@ -604,11 +607,11 @@ export function ExperienceSection() {
             {/* Card 4: Team standup & discussion */}
             <div
               data-k="0.08"
-              className="absolute right-[10%] bottom-[14%] hidden md:block will-change-transform"
+              className="absolute right-[10%] bottom-[14%] hidden md:block"
             >
               <div
                 onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
-                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-[0_20px_40px_rgba(0,0,0,0.8)] rotate-[-3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
+                className="w-48 sm:w-56 md:w-60 rounded-2xl overflow-hidden border border-white/20 bg-neutral-900 shadow-2xl shadow-black/60 rotate-[-3deg] cursor-pointer hover:scale-105 hover:border-emerald-400 transition-all duration-300"
               >
                 <div className="aspect-[4/3] w-full overflow-hidden">
                   <img
@@ -628,7 +631,7 @@ export function ExperienceSection() {
             {/* Floating Thumbnail: Project MBG Screenshot */}
             <div
               data-k="-0.04"
-              className="absolute left-[26%] top-[6%] hidden xl:block will-change-transform"
+              className="absolute left-[26%] top-[6%] hidden xl:block"
             >
               <div
                 onClick={() => openExperienceModal(IROSTECH_EXPERIENCE)}
@@ -650,14 +653,14 @@ export function ExperienceSection() {
             {/* Floating Tags */}
             <div
               data-k="-0.2"
-              className="absolute left-[30%] bottom-[8%] px-4 py-2 rounded-xl bg-emerald-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[-4deg] pointer-events-none will-change-transform"
+              className="absolute left-[30%] bottom-[8%] px-4 py-2 rounded-xl bg-emerald-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[-4deg] pointer-events-none"
             >
               Program Makan Bergizi Gratis (MBG) · BRIN
             </div>
 
             <div
               data-k="0.18"
-              className="absolute right-[30%] bottom-[10%] px-4 py-2 rounded-xl bg-sky-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[4deg] pointer-events-none will-change-transform"
+              className="absolute right-[30%] bottom-[10%] px-4 py-2 rounded-xl bg-sky-600/90 text-white font-mono text-xs font-semibold shadow-lg hidden lg:block rotate-[4deg] pointer-events-none"
             >
               FastAPI · LLM Vision · Discord Webhook
             </div>

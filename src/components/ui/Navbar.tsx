@@ -19,47 +19,62 @@ export function Navbar({
     "home" | "about" | "experience" | "projects" | "others"
   >("home");
 
-  // Track active section on scroll
+  // Track active section on scroll with RAF throttling
   useEffect(() => {
-    const handleScroll = () => {
+    let ticking = false;
+
+    const updateActiveSection = () => {
       const othersSection = document.getElementById("others");
       const projectsSection = document.getElementById("projects");
       const experienceSection = document.getElementById("experience");
       const aboutSection = document.getElementById("about");
+      const vhThreshold = window.innerHeight * 0.4;
 
       if (othersSection) {
         const rect = othersSection.getBoundingClientRect();
-        if (rect.top <= window.innerHeight * 0.4) {
+        if (rect.top <= vhThreshold) {
           setActiveSection("others");
+          ticking = false;
           return;
         }
       }
 
       if (projectsSection) {
         const rect = projectsSection.getBoundingClientRect();
-        if (rect.top <= window.innerHeight * 0.4) {
+        if (rect.top <= vhThreshold) {
           setActiveSection("projects");
+          ticking = false;
           return;
         }
       }
 
       if (experienceSection) {
         const rect = experienceSection.getBoundingClientRect();
-        if (rect.top <= window.innerHeight * 0.4) {
+        if (rect.top <= vhThreshold) {
           setActiveSection("experience");
+          ticking = false;
           return;
         }
       }
 
       if (aboutSection) {
         const rect = aboutSection.getBoundingClientRect();
-        if (rect.top <= window.innerHeight * 0.4) {
+        if (rect.top <= vhThreshold) {
           setActiveSection("about");
+          ticking = false;
           return;
         }
       }
 
       setActiveSection("home");
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(updateActiveSection);
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });

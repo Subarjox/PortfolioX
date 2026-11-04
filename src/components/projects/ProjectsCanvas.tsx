@@ -8,22 +8,25 @@ interface ProjectsCanvasProps {
   progress: number;
   activeIndex: number;
   isMobile: boolean;
+  isVisible?: boolean;
 }
 
 export function ProjectsCanvas({
   progress,
   activeIndex,
   isMobile,
+  isVisible = true,
 }: ProjectsCanvasProps) {
   return (
     <div className="absolute inset-0 pointer-events-auto">
       <Canvas
+        frameloop={isVisible ? "always" : "never"}
         style={{ touchAction: "pan-y" }}
         camera={{
           position: [0, 0, isMobile ? 5.2 : 4.4],
           fov: isMobile ? 50 : 42,
         }}
-        dpr={[1, 2]}
+        dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: true }}
       >
         <ProjectsGallery
