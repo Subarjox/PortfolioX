@@ -83,6 +83,11 @@ export function GPGPUParticles({
 
   // Frame simulation and render update
   useFrame(({ pointer, camera, clock }, delta) => {
+    // Pause simulation compute passes when hero section is scrolled out of viewport
+    if (typeof window !== "undefined" && window.scrollY > window.innerHeight * 1.2) {
+      return;
+    }
+
     // Unproject pointer to 3D world plane z=0
     raycaster.setFromCamera(pointer, camera);
     const intersection = new THREE.Vector3();

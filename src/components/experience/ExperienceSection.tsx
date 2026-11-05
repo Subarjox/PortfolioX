@@ -24,24 +24,28 @@ export function ExperienceSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExperience, setSelectedExperience] = useState<ExperienceItem>(WINNICODE_EXPERIENCE);
 
-  // Performance cache refs to eliminate forced reflows and DOM querying in 60fps scroll loop
+  // Performance & layout cache refs
   const panelFractionsRef = useRef<number[]>([0, 0.33, 0.66, 1]);
   const floatElsRef = useRef<CachedFloatElement[]>([]);
   const travelRef = useRef<number>(1);
   const activeDotRef = useRef<number>(0);
 
-  const update = useCallback(() => {
-    if (!containerRef.current || !trackRef.current || !fillRef.current) return;
-    const travel = travelRef.current;
-    const rect = containerRef.current.getBoundingClientRect();
-    const scrolled = -rect.top;
-    const p = Math.max(0, Math.min(1, scrolled / travel));
-    const cur = p * travel;
+  // Smooth inertial damping state (eliminates stepped/jittery mouse wheel notches)
+  const targetCurRef = useRef<number>(0);
+  const currentCurRef = useRef<number>(0);
+  const rafIdRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number>(0);
+
+  // Frame renderer: translates track, progress bar and parallax items via GPU transforms
+  const renderFrame = useCallback((cur: number, travel: number) => {
+    if (!trackRef.current || !fillRef.current) return;
+
+    const p = travel > 0 ? Math.max(0, Math.min(1, cur / travel)) : 0;
 
     // GPU-accelerated horizontal track translation
     trackRef.current.style.transform = `translate3d(${-cur}px, 0, 0)`;
 
-    // GPU-accelerated timeline progress bar (scaleX instead of width reflow)
+    // GPU-accelerated timeline progress bar
     fillRef.current.style.transform = `scaleX(${p})`;
 
     // Move pre-cached parallax float elements with zero DOM lookups
@@ -63,12 +67,54 @@ export function ExperienceSection() {
       }
     }
 
-    // Only trigger React state update if the active index actually changed
+    // Only trigger React state update when active index changes
     if (closest !== activeDotRef.current) {
       activeDotRef.current = closest;
       setActiveDotIndex(closest);
     }
   }, []);
+
+  // Critically damped animation loop (ease-out inertia between mouse-wheel steps)
+  const animate = useCallback((now: number) => {
+    const dt = Math.min((now - lastTimeRef.current) / 1000, 0.1);
+    lastTimeRef.current = now;
+
+    const target = targetCurRef.current;
+    const current = currentCurRef.current;
+    const travel = travelRef.current;
+
+    // Responsive yet buttery-smooth damping constant (lambda = 8.5)
+    const lambda = 8.5;
+    const next = current + (target - current) * (1 - Math.exp(-lambda * dt));
+    currentCurRef.current = next;
+
+    renderFrame(next, travel);
+
+    // Continue running until settled within sub-pixel threshold
+    if (Math.abs(target - next) > 0.15) {
+      rafIdRef.current = requestAnimationFrame(animate);
+    } else {
+      currentCurRef.current = target;
+      renderFrame(target, travel);
+      rafIdRef.current = null;
+    }
+  }, [renderFrame]);
+
+  // Read scroll position and wake up the smooth RAF loop
+  const onScroll = useCallback(() => {
+    if (!containerRef.current) return;
+    const travel = travelRef.current;
+    const rect = containerRef.current.getBoundingClientRect();
+    const scrolled = -rect.top;
+    const clampedTarget = Math.max(0, Math.min(travel, scrolled));
+
+    targetCurRef.current = clampedTarget;
+
+    if (rafIdRef.current === null) {
+      lastTimeRef.current = performance.now();
+      rafIdRef.current = requestAnimationFrame(animate);
+    }
+  }, [animate]);
 
   const layout = useCallback(() => {
     if (!containerRef.current || !trackRef.current) return;
@@ -97,36 +143,30 @@ export function ExperienceSection() {
       return Math.min(1, Math.max(0, (el.offsetLeft + el.offsetWidth / 2 - vw / 2) / travel));
     });
 
-    update();
-  }, [update]);
+    // Synchronize position immediately
+    const rect = containerRef.current.getBoundingClientRect();
+    const scrolled = -rect.top;
+    const clampedTarget = Math.max(0, Math.min(travel, scrolled));
+    targetCurRef.current = clampedTarget;
+    currentCurRef.current = clampedTarget;
+    renderFrame(clampedTarget, travel);
+  }, [renderFrame]);
 
   useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(() => {
-          update();
-          ticking = false;
-        });
-      }
-    };
-
-    const handleResize = () => {
-      layout();
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", layout);
 
     const timer = setTimeout(layout, 150);
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", layout);
       clearTimeout(timer);
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
     };
-  }, [layout, update]);
+  }, [layout, onScroll]);
 
   const handleDotClick = (index: number) => {
     if (!containerRef.current) return;

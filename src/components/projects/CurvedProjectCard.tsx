@@ -198,26 +198,25 @@ export function CurvedProjectCard({
     const maxCurve = isMobile ? 0.08 : 0.11;
     const targetCurve = calculateDynamicCurveFactor(absDiff, maxCurve);
 
-    if (currentCurveRef.current === null) {
-      currentCurveRef.current = targetCurve;
-    }
-
+    const prevCurve = currentCurveRef.current ?? targetCurve;
     const nextCurve = THREE.MathUtils.damp(
-      currentCurveRef.current,
+      prevCurve,
       targetCurve,
       lambda,
       delta
     );
     currentCurveRef.current = nextCurve;
 
-    // Update geometry vertex Z positions
-    const pos = geometry.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      const z = calculateCurvedVertices(x, nextCurve);
-      pos.setZ(i, z);
+    // Only update geometry buffer if curvature actually changed significantly
+    if (Math.abs(nextCurve - prevCurve) > 0.0001) {
+      const pos = geometry.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const z = calculateCurvedVertices(x, nextCurve);
+        pos.setZ(i, z);
+      }
+      pos.needsUpdate = true;
     }
-    pos.needsUpdate = true;
   });
 
   return (
