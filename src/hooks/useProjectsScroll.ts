@@ -45,8 +45,13 @@ export function useProjectsScroll(
   });
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current) return;
+    let ticking = false;
+
+    const updateScrollProgress = () => {
+      if (!containerRef.current) {
+        ticking = false;
+        return;
+      }
       const rect = containerRef.current.getBoundingClientRect();
       const target = calculateScrollProgress(
         rect.top,
@@ -75,6 +80,14 @@ export function useProjectsScroll(
           activeProjectNumber: numStr,
         };
       });
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(updateScrollProgress);
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });

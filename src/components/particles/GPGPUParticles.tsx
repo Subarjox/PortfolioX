@@ -12,12 +12,14 @@ interface GPGPUParticlesProps {
   size?: number; // 110 gives 110*110 = 12,100 high-density particles
   text?: string;
   particleScale?: number;
+  isVisible?: boolean;
 }
 
 export function GPGPUParticles({
   size = 110,
   text = "fahreza",
   particleScale = 1.0,
+  isVisible = true,
 }: GPGPUParticlesProps) {
   const { stepSimulation, getCurrentTexture } = useGPGPUSimulation({
     size,

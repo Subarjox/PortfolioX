@@ -14,6 +14,7 @@ const ProjectsCanvas = dynamic(
 export function FeaturedProjectsSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   const { currentProgress, activeIndex, activeProjectNumber } = useProjectsScroll(
     containerRef,
@@ -29,6 +30,21 @@ export function FeaturedProjectsSection() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { rootMargin: "300px 0px" }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       id="projects"
@@ -41,6 +57,7 @@ export function FeaturedProjectsSection() {
           progress={currentProgress}
           activeIndex={activeIndex}
           isMobile={isMobile}
+          isVisible={isVisible}
         />
 
         <ProjectsOverlay

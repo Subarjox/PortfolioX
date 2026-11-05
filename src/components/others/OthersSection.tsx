@@ -36,7 +36,7 @@ const CATEGORIES: Record<CategoryKey, CategoryMeta> = {
     title: "Publications",
     tag: "// papers",
     color: "#ff6a2b",
-    subtitle: `${PUBLICATIONS_DATA.length} published research papers.`,
+    subtitle: `${PUBLICATIONS_DATA.length} published & submitted research papers.`,
     count: PUBLICATIONS_DATA.length,
   },
   hon: {
@@ -45,7 +45,7 @@ const CATEGORIES: Record<CategoryKey, CategoryMeta> = {
     title: "Honor & Awards",
     tag: "// honors",
     color: "#7c5cff",
-    subtitle: "Recognition and awards along the way.",
+    subtitle: `${AWARDS_DATA.length} awards and verified recognitions.`,
     count: AWARDS_DATA.length,
   },
 };
@@ -307,6 +307,11 @@ export function OthersSection() {
                       <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
                         {pub.authors}
                       </p>
+                      {pub.description && (
+                        <p className="text-xs text-neutral-500 leading-relaxed pt-0.5">
+                          {pub.description}
+                        </p>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -324,7 +329,19 @@ export function OthersSection() {
 
                     <div className="space-y-2">
                       <h3 className="text-lg sm:text-xl md:text-2xl font-medium text-white group-hover:text-purple-400 transition-colors">
-                        <span>{award.title}</span>
+                        {award.documentUrl ? (
+                          <a
+                            href={award.documentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 hover:underline"
+                          >
+                            <span>{award.title}</span>
+                            <ArrowUpRight className="w-4 h-4 text-purple-400 inline shrink-0" />
+                          </a>
+                        ) : (
+                          <span>{award.title}</span>
+                        )}
                       </h3>
                       <p className="font-mono text-xs sm:text-sm text-purple-400/90 tracking-wide">
                         {award.organizer} · {award.year}
@@ -332,6 +349,17 @@ export function OthersSection() {
                       <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
                         {award.description}
                       </p>
+                      {award.documentUrl && (
+                        <a
+                          href={award.documentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-mono font-semibold text-purple-400 hover:text-purple-300 transition-colors pt-1"
+                        >
+                          <span>Buka Dokumen Asli</span>
+                          <ArrowUpRight className="w-3.5 h-3.5" />
+                        </a>
+                      )}
                     </div>
                   </li>
                 ))}
