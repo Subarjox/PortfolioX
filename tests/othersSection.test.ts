@@ -14,13 +14,14 @@ describe("OthersSection Component", () => {
   });
 
   it("verifies certifications, publications, and awards data models", () => {
-    expect(CERTIFICATES_DATA.length).toBeGreaterThanOrEqual(8);
-    expect(PUBLICATIONS_DATA.length).toBe(3);
+    expect(CERTIFICATES_DATA.length).toBeGreaterThanOrEqual(10);
+    expect(PUBLICATIONS_DATA.length).toBe(4);
     expect(AWARDS_DATA.length).toBe(3);
 
     expect(CERTIFICATES_DATA[0].recipient).toBe("Muhamad Fahreza Andina Rizki");
     expect(PUBLICATIONS_DATA[0].authors).toContain("Muhamad Fahreza Andina Rizki");
-    expect(AWARDS_DATA[0].title).toContain("Juara 1");
+    expect(AWARDS_DATA[0].title).toContain("Google Cloud");
+    expect(AWARDS_DATA[1].title).toContain("Medali Perunggu");
   });
 
   it("verifies page.tsx integrates OthersSection between Projects and Contact", () => {
