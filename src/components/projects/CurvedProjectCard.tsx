@@ -16,6 +16,8 @@ interface CurvedProjectCardProps {
   progress: number;
   totalCards: number;
   isMobile: boolean;
+  onHover?: (index: number | null) => void;
+  onClickCard?: (project: ProjectItem) => void;
 }
 
 export function CurvedProjectCard({
@@ -24,14 +26,20 @@ export function CurvedProjectCard({
   progress,
   totalCards,
   isMobile,
+  onHover,
+  onClickCard,
 }: CurvedProjectCardProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const currentCurveRef = useRef<number | null>(null);
+  const pointerDownPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  // Generate segmented plane geometry ready for dynamic vertex curvature
+  // Segmented plane geometry:
+  // Strictly matched to 16:9 thumbnail aspect ratio (1.778+) plus parabolic curve compensation
+  // Desktop: 3.4 x 1.85 (~1.84 ratio)
+  // Mobile: 2.6 x 1.38 (~1.88 ratio)
   const geometry = useMemo(() => {
     const width = isMobile ? 2.6 : 3.4;
-    const height = isMobile ? 3.4 : 2.2;
+    const height = isMobile ? 1.38 : 1.85;
     const segmentsX = 32;
     const segmentsY = 1;
     const geo = new THREE.PlaneGeometry(width, height, segmentsX, segmentsY);
@@ -59,30 +67,30 @@ export function CurvedProjectCard({
     };
   }, [geometry]);
 
-  // Texture loading with high quality fallback canvas texture
+  // Texture loading with high quality fallback canvas texture matching 16:9
   const texture = useMemo(() => {
     if (typeof document === "undefined") return null;
 
     const canvas = document.createElement("canvas");
-    canvas.width = 1024;
-    canvas.height = 680;
+    canvas.width = 1280;
+    canvas.height = 720;
     const ctx = canvas.getContext("2d");
     if (ctx) {
-      const grad = ctx.createLinearGradient(0, 0, 1024, 680);
+      const grad = ctx.createLinearGradient(0, 0, 1280, 720);
       grad.addColorStop(0, project.accentColor);
       grad.addColorStop(1, "#111115");
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 1024, 680);
+      ctx.fillRect(0, 0, 1280, 720);
 
       ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
-      ctx.font = '700 80px "Inter", sans-serif';
+      ctx.font = '700 90px "Inter", sans-serif';
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(project.id, 512, 340);
+      ctx.fillText(project.id, 640, 340);
 
       ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-      ctx.font = '500 24px "Inter", sans-serif';
-      ctx.fillText(project.title, 512, 420);
+      ctx.font = '500 28px "Inter", sans-serif';
+      ctx.fillText(project.title, 640, 430);
     }
 
     const tex = new THREE.CanvasTexture(canvas);
@@ -223,19 +231,26 @@ export function CurvedProjectCard({
     <mesh
       ref={meshRef}
       geometry={geometry}
-      onClick={(e) => {
+      onPointerDown={(e) => {
+        pointerDownPos.current = { x: e.clientX, y: e.clientY };
+      }}
+      onPointerUp={(e) => {
         e.stopPropagation();
-        if (project.href && project.href !== "#") {
-          window.open(project.href, "_blank", "noopener,noreferrer");
+        const dx = Math.abs(e.clientX - pointerDownPos.current.x);
+        const dy = Math.abs(e.clientY - pointerDownPos.current.y);
+        // Threshold check: ensure it was a clean click/tap and not a scroll drag
+        if (dx < 8 && dy < 8) {
+          onClickCard?.(project);
         }
       }}
-      onPointerOver={() => {
-        if (project.href && project.href !== "#") {
-          document.body.style.cursor = "pointer";
-        }
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        document.body.style.cursor = "pointer";
+        onHover?.(index);
       }}
       onPointerOut={() => {
         document.body.style.cursor = "auto";
+        onHover?.(null);
       }}
     >
       <meshBasicMaterial

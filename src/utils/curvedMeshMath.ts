@@ -4,7 +4,7 @@
  */
 
 export const DESKTOP_CARD_SPACING = 5.2;
-export const MOBILE_CARD_SPACING = 2.2;
+export const MOBILE_CARD_SPACING = 2.9;
 
 /**
  * Calculates concave parabolic curvature along X axis.
@@ -46,7 +46,7 @@ export interface CardLayoutResult {
  * - Focused project (currently highlighted in center): scaled larger (1.05x), flat and level.
  * - Other projects: scaled down to 70% (0.70x), curved and tilted along the ribbon.
  * - Desktop: Horizontal curved cylinder track with widened spacing.
- * - Mobile: Diagonal staggered 3D cascade with comfortable depth offsets.
+ * - Mobile: Perfectly centered active card, subtle depth recession, and gentle non-obtrusive stagger.
  */
 export function calculateCardLayout(
   index: number,
@@ -64,14 +64,13 @@ export function calculateCardLayout(
   const scale = 0.70 + 0.35 * smoothProximity;
 
   if (isMobile) {
-    // Staggered cascade matching phoneprojeclist.png
-    // Active card (diff = 0) is foreground left-center, square to camera
-    // Next cards (diff > 0) are higher, shifted right, deeper in Z, and angled
-    const x = diff * MOBILE_CARD_SPACING - 0.25;
-    const y = diff * 1.35 + 0.1;
-    const z = -Math.abs(diff) * 1.3;
-    const rotationY = -0.15 * (1 - smoothProximity * 0.7);
-    const rotationZ = -0.06 * (1 - smoothProximity * 0.7);
+    // Elegant mobile 3D layout: centered active card,
+    // subtle depth recession, and gentle non-obtrusive stagger
+    const x = diff * MOBILE_CARD_SPACING;
+    const y = diff * 0.15 + 0.05;
+    const z = -Math.abs(diff) * 1.1;
+    const rotationY = -diff * 0.14;
+    const rotationZ = 0;
     return { x, y, z, rotationY, rotationZ, scale };
   } else {
     // Horizontal curved ribbon matching Project List.png with widened breathing room

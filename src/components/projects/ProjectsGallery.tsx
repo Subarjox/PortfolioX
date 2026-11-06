@@ -1,20 +1,26 @@
 "use client";
 
 import React from "react";
-import { PROJECTS_DATA } from "@/data/projectsData";
+import { PROJECTS_DATA, ProjectItem } from "@/data/projectsData";
 import { CurvedProjectCard } from "./CurvedProjectCard";
 import { DecorativeArc } from "./DecorativeArc";
 
 interface ProjectsGalleryProps {
   progress: number;
   activeIndex: number;
+  totalStops?: number;
   isMobile: boolean;
+  onHover?: (index: number | null) => void;
+  onClickCard?: (project: ProjectItem) => void;
 }
 
 export function ProjectsGallery({
   progress,
   activeIndex,
+  totalStops = PROJECTS_DATA.length + 1,
   isMobile,
+  onHover,
+  onClickCard,
 }: ProjectsGalleryProps) {
   return (
     <group position={[0, 0, 0]}>
@@ -27,8 +33,10 @@ export function ProjectsGallery({
           project={project}
           index={idx}
           progress={progress}
-          totalCards={PROJECTS_DATA.length}
+          totalCards={totalStops}
           isMobile={isMobile}
+          onHover={onHover}
+          onClickCard={onClickCard}
         />
       ))}
 
