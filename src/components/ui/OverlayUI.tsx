@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ExternalLink, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 interface OverlayUIProps {
   currentText?: string;
@@ -18,34 +18,31 @@ export function OverlayUI({
 
       {/* Background Decorative Crosshairs matching partikle.png */}
       <div className="absolute top-1/4 left-1/5 text-white/20 text-xs font-mono select-none pointer-events-none">+</div>
-      <div className="absolute top-1/3 right-1/4 text-white/15 text-xs font-mono select-none pointer-events-none">+</div>
-      <div className="absolute bottom-1/3 left-1/3 text-white/15 text-xs font-mono select-none pointer-events-none">+</div>
-      <div className="absolute top-2/3 right-1/5 text-white/20 text-xs font-mono select-none pointer-events-none">+</div>
+      <div className="absolute bottom-1/3 right-1/4 text-white/20 text-xs font-mono select-none pointer-events-none">+</div>
+      <div className="absolute top-1/2 right-12 text-white/10 text-xs font-mono select-none pointer-events-none">+</div>
+      <div className="absolute top-1/3 left-10 text-white/15 text-xs font-mono select-none pointer-events-none">+</div>
 
-      {/* Hand-Drawn SVG Doodles matching About & Experience */}
-      {/* Doodle 1: Top-Right Ribbon Curve */}
+      {/* Background Geometric Doodles matching About & Experience */}
+      {/* Doodle 1: Subtle Circular Orbit Outline */}
       <svg
-        className="absolute top-16 sm:top-24 right-8 sm:right-16 w-32 sm:w-48 h-24 sm:h-32 opacity-70 pointer-events-none animate-float-slow"
-        viewBox="0 0 160 100"
+        className="absolute top-1/4 right-8 sm:right-24 w-32 sm:w-48 h-32 sm:h-48 opacity-40 pointer-events-none animate-spin-ultra-slow"
+        viewBox="0 0 100 100"
         fill="none"
         aria-hidden="true"
       >
-        <path
-          d="M 10 45 C 45 10, 110 15, 145 60 C 160 80, 120 95, 95 75 S 85 20, 130 30"
-          stroke="#2f6bff"
-          strokeWidth="2.2"
+        <circle
+          cx="50"
+          cy="50"
+          r="46"
+          stroke="#3b82f6"
+          strokeWidth="1.2"
+          strokeDasharray="4 8"
           strokeLinecap="round"
         />
-        <path
-          d="M 20 80 C 60 65, 110 70, 140 50"
-          stroke="#ffd23f"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeDasharray="4 3"
-        />
+        <circle cx="50" cy="4" r="2.5" fill="#3b82f6" />
       </svg>
 
-      {/* Doodle 2: Mid-Left Organic Loop */}
+      {/* Doodle 2: Hand-drawn Swirl Knot */}
       <svg
         className="absolute top-1/2 left-6 sm:left-14 w-28 sm:w-36 h-28 sm:h-36 opacity-60 pointer-events-none -translate-y-1/2 animate-float"
         viewBox="0 0 100 100"
@@ -101,31 +98,10 @@ export function OverlayUI({
           <span className="hidden xs:inline">CIMAHI, ID //</span>
           <span>06°53&apos;S 107°32&apos;E</span>
         </div>
-
       </div>
 
-      {/* Subtle Horizontal Tech Separator Line and Bottom Notice */}
+      {/* Subtle Horizontal Tech Separator Line and Bottom Footer */}
       <div className="w-full flex flex-col gap-4">
-        {/* Notice Banner: Website is on development */}
-        <div className="pointer-events-auto flex items-center justify-start">
-          <a
-            href="https://resume-phi-smoky-95.vercel.app/index.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/40 backdrop-blur-md text-xs font-mono tracking-wide text-neutral-300 hover:text-white transition-all duration-300 shadow-sm shadow-white/5 cursor-pointer"
-          >
-            <span className="w-2 h-2 rounded-full bg-white animate-pulse shrink-0" />
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-white">Notice:</span>
-            <span className="text-neutral-200 group-hover:text-white transition-colors">
-              Website is on development
-            </span>
-            <span className="text-neutral-400 group-hover:text-neutral-200 text-[11px] font-medium hidden sm:inline">
-              • View live resume
-            </span>
-            <ExternalLink className="w-3.5 h-3.5 text-neutral-300 group-hover:text-white transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </a>
-        </div>
-
         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent border-t border-dashed border-white/20" />
 
         {/* Bottom Bar */}

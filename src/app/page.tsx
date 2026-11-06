@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { OverlayUI } from "@/components/ui/OverlayUI";
 import { Navbar } from "@/components/ui/Navbar";
-import { DevelopmentModal } from "@/components/ui/DevelopmentModal";
 import { AboutSection } from "@/components/about/AboutSection";
 import { ExperienceSection } from "@/components/experience/ExperienceSection";
 import { FeaturedProjectsSection } from "@/components/projects/FeaturedProjectsSection";
@@ -33,7 +32,6 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen w-full bg-[#090909] text-white selection:bg-neutral-800">
-      <DevelopmentModal />
       <Navbar />
 
       {/* Hero Section: 3D Particle Simulation */}
